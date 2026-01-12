@@ -130,7 +130,7 @@ A: 请确保您的系统中安装了所需的字体（宋体、黑体、Arial）
 ## 联系方式
 
 - GitHub: [ilovend](https://github.com/ilovend)
-- 邮箱: [ilovendme@outlook.com]
+- 邮箱: ilovendme@outlook.com
 
 ---
 
