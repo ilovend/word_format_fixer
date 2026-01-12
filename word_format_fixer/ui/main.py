@@ -34,7 +34,7 @@ class WordFixerApp:
             self.style.theme_use('clam')
         
         # 自定义样式
-        self.style.configure('TLabelFrame', 
+        self.style.configure('TLabelFrame',
                            borderwidth=2,
                            relief='groove',
                            padding=10)
@@ -147,7 +147,9 @@ class WordFixerApp:
 
             # 更新状态条上的尺寸显示（若存在）
             if hasattr(self, 'size_label'):
-                self.size_label.config(text=f"窗口: {e.width}×{e.height}，内容宽度: {content_width}")
+                self.size_label.config(
+                    text=f"窗口: {e.width}×{e.height}，内容宽度: {content_width}"
+                )
 
         self.canvas.bind("<Configure>", _on_canvas_configure)
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
@@ -374,7 +376,12 @@ class WordFixerApp:
         log_frame.pack(fill=tk.BOTH, expand=True, pady=5)
         
         # 日志文本和滚动条（滚动条放在 log_frame 中，避免将其附着于 Text 本身）
-        self.log_text = tk.Text(log_frame, height=10, wrap=tk.WORD, font=('微软雅黑', 10))
+        self.log_text = tk.Text(
+            log_frame, 
+            height=10, 
+            wrap=tk.WORD, 
+            font=('微软雅黑', 10)
+        )
         self.log_scrollbar = ttk.Scrollbar(log_frame, command=self.log_text.yview)
         self.log_scrollbar.pack(side=tk.RIGHT, fill=tk.Y, pady=5, padx=(0,5))
         self.log_text.config(yscrollcommand=self.log_scrollbar.set)
@@ -513,19 +520,16 @@ class WordFixerApp:
                 'chinese_font': self.chinese_font.get(),
                 'western_font': self.western_font.get(),
                 'title_font': self.title_font.get(),
-                
                 # 字号设置
                 'font_size_body': self.font_size_body.get(),
                 'font_size_title1': self.font_size_title1.get(),
                 'font_size_title2': self.font_size_title2.get(),
                 'font_size_title3': self.font_size_title3.get(),
-                
                 # 页面设置
                 'page_margin_top_cm': self.margin_top.get(),
                 'page_margin_bottom_cm': self.margin_bottom.get(),
                 'page_margin_left_cm': self.margin_left.get(),
                 'page_margin_right_cm': self.margin_right.get(),
-                
                 # 表格设置
                 'table_width_percent': self.table_width_percent.get(),
                 'auto_adjust_columns': self.auto_adjust_columns.get(),
@@ -577,7 +581,7 @@ class WordFixerApp:
 def run_app():
     """运行应用"""
     root = tk.Tk()
-    app = WordFixerApp(root)
+    WordFixerApp(root)
     root.mainloop()
 
 

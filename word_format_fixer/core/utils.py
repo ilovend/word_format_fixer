@@ -15,7 +15,7 @@ def detect_numbering_patterns() -> Dict[str, str]:
         'arabic_with_dot': r'^\s*(\d+)\.\s+',  # 1. 项目
         'arabic_with_paren': r'^\s*(\d+)\)\s+',  # 1) 项目
         'chinese_with_dot': r'^\s*([一二三四五六七八九十]+)\.\s+',  # 一. 项目
-        'chinese_with_bracket': r'^\s*([一二三四五六七八九十]+)、\s+',  # 一、项目
+        'chinese_with_bracket': r'^\s*([一二三四五六七八九十]+)、',  # 一、项目
         'chinese_with_paren': r'^\s*\(([一二三四五六七八九十]+)\)\s+',  # (一) 项目
         'lower_alpha_with_dot': r'^\s*([a-z])\.\s+',  # a. 项目
         'upper_alpha_with_dot': r'^\s*([A-Z])\.\s+',  # A. 项目
@@ -57,7 +57,7 @@ def is_title_paragraph(paragraph_text: str) -> bool:
     # 检查是否为编号标题（如"1. 标题"、"一、标题"等）
     numbering_patterns = detect_numbering_patterns()
     for pattern in numbering_patterns.values():
-        if re.match(pattern, paragraph_text.strip()):
+        if re.match(pattern, paragraph_text):
             return True
     
     return False
@@ -75,7 +75,7 @@ def extract_numbering(paragraph_text: str) -> str:
     """
     numbering_patterns = detect_numbering_patterns()
     for pattern in numbering_patterns.values():
-        match = re.match(pattern, paragraph_text.strip())
+        match = re.match(pattern, paragraph_text)
         if match:
             return match.group()
     return ''
@@ -94,15 +94,15 @@ def extract_content(paragraph_text: str) -> str:
     # 去除项目符号
     bullet_patterns = get_bullet_patterns()
     for pattern in bullet_patterns:
-        match = re.match(pattern, paragraph_text.strip())
+        match = re.match(pattern, paragraph_text)
         if match:
-            return paragraph_text.strip()[len(match.group()):].strip()
+            return paragraph_text[len(match.group()):].strip()
     
     # 去除编号
     numbering_patterns = detect_numbering_patterns()
     for pattern in numbering_patterns.values():
-        match = re.match(pattern, paragraph_text.strip())
+        match = re.match(pattern, paragraph_text)
         if match:
-            return paragraph_text.strip()[len(match.group()):].strip()
+            return paragraph_text[len(match.group()):].strip()
     
     return paragraph_text.strip()

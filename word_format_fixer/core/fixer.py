@@ -103,7 +103,7 @@ class RobustWordFixer:
             section.left_margin = Cm(self.config.get('page_margin_left_cm', 2.54))
             section.right_margin = Cm(self.config.get('page_margin_right_cm', 2.54))
             
-            print(f"页面设置完成:")
+            print("页面设置完成:")
             print(f"  页面宽度: {section.page_width.cm:.1f}cm")
             print(f"  页面高度: {section.page_height.cm:.1f}cm")
             print(f"  左边距: {section.left_margin.cm:.1f}cm")
@@ -144,9 +144,11 @@ class RobustWordFixer:
                 # 使用自定义列宽
                 total_percent = sum(self.config['column_widths'])
                 for i, col in enumerate(table.columns):
-                    col_width_cm = table_width_cm * self.config['column_widths'][i] / total_percent
+                    col_width_cm = (table_width_cm * 
+                                   self.config['column_widths'][i] / 
+                                   total_percent)
                     col.width = Cm(col_width_cm)
-                    print(f"    列{i+1}宽度: {col_width_cm:.1f}cm ({self.config['column_widths'][i]}%)")
+                    print(f"    列{i+1}宽度: {col_width_cm:.1f}cm "                           f"({self.config['column_widths'][i]}%)")
             elif self.config['auto_adjust_columns']:
                 # 自动调整列宽
                 self._auto_adjust_column_widths(table, table_width_cm)
@@ -192,8 +194,10 @@ class RobustWordFixer:
                     for paragraph in cell.paragraphs:
                         for run in paragraph.runs:
                             run.font.name = self.config['western_font']
-                            run._element.rPr.rFonts.set(qn('w:eastAsia'), 
-                                                      self.config['chinese_font'])
+                            run._element.rPr.rFonts.set(
+                                qn('w:eastAsia'), 
+                                self.config['chinese_font']
+                            )
                             run.font.color.rgb = RGBColor(*self.config['text_color'])
                             
                             # 根据位置设置字号
@@ -252,8 +256,10 @@ class RobustWordFixer:
                 # 标题使用黑体
                 for run in paragraph.runs:
                     run.font.name = self.config['western_font']
-                    run._element.rPr.rFonts.set(qn('w:eastAsia'), 
-                                              self.config['title_font'])
+                    run._element.rPr.rFonts.set(
+                        qn('w:eastAsia'), 
+                        self.config['title_font']
+                    )
                     run.font.color.rgb = RGBColor(*self.config['text_color'])
                     
                     # 根据标题级别设置字号
@@ -273,8 +279,10 @@ class RobustWordFixer:
                 # 正文使用宋体
                 for run in paragraph.runs:
                     run.font.name = self.config['western_font']
-                    run._element.rPr.rFonts.set(qn('w:eastAsia'), 
-                                              self.config['chinese_font'])
+                    run._element.rPr.rFonts.set(
+                        qn('w:eastAsia'), 
+                        self.config['chinese_font']
+                    )
                     run.font.color.rgb = RGBColor(*self.config['text_color'])
                     
                     # 设置合适的字号
@@ -331,7 +339,10 @@ class RobustWordFixer:
                     # 添加内容
                     run = paragraph.add_run(content)
                     run.font.name = self.config['western_font']
-                    run._element.rPr.rFonts.set(qn('w:eastAsia'), self.config['chinese_font'])
+                    run._element.rPr.rFonts.set(
+                        qn('w:eastAsia'), 
+                        self.config['chinese_font']
+                    )
                     run.font.color.rgb = RGBColor(*self.config['text_color'])
                     run.font.size = Pt(self.config['font_size_body'])
                     
@@ -353,11 +364,9 @@ class RobustWordFixer:
                 continue
             
             # 检查各种编号模式
-            matched = False
             for pattern_name, pattern in patterns.items():
                 match = re.match(pattern, original_text)
                 if match:
-                    matched = True
                     self._format_numbered_paragraph(paragraph, pattern_name, match, original_text)
                     fixed_count += 1
                     break
@@ -377,7 +386,10 @@ class RobustWordFixer:
         # 添加内容
         run = paragraph.add_run(content)
         run.font.name = self.config['western_font']
-        run._element.rPr.rFonts.set(qn('w:eastAsia'), self.config['chinese_font'])
+        run._element.rPr.rFonts.set(
+            qn('w:eastAsia'), 
+            self.config['chinese_font']
+        )
         run.font.color.rgb = RGBColor(*self.config['text_color'])
         run.font.size = Pt(self.config['font_size_body'])
         
