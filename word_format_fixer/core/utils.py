@@ -12,15 +12,38 @@ def detect_numbering_patterns() -> Dict[str, str]:
         编号模式字典
     """
     patterns = {
+        # 基本阿拉伯数字编号
         'arabic_with_dot': r'^\s*(\d+)\.\s+',  # 1. 项目
         'arabic_with_paren': r'^\s*(\d+)\)\s+',  # 1) 项目
+        'arabic_with_hyphen': r'^\s*(\d+)-\s+',  # 1- 项目
+        'arabic_with_colon': r'^\s*(\d+):\s+',  # 1: 项目
+        'arabic_with_bracket': r'^\s*\[(\d+)\]\s+',  # [1] 项目
+        
+        # 中文数字编号
         'chinese_with_dot': r'^\s*([一二三四五六七八九十]+)\.\s+',  # 一. 项目
         'chinese_with_bracket': r'^\s*([一二三四五六七八九十]+)、',  # 一、项目
         'chinese_with_paren': r'^\s*\(([一二三四五六七八九十]+)\)\s+',  # (一) 项目
+        
+        # 字母编号
         'lower_alpha_with_dot': r'^\s*([a-z])\.\s+',  # a. 项目
         'upper_alpha_with_dot': r'^\s*([A-Z])\.\s+',  # A. 项目
+        'lower_alpha_with_paren': r'^\s*([a-z])\)\s+',  # a) 项目
+        'upper_alpha_with_paren': r'^\s*([A-Z])\)\s+',  # A) 项目
+        
+        # 罗马数字编号
         'lower_roman_with_dot': r'^\s*([ivxlcdm]+)\.\s+',  # i. 项目
         'upper_roman_with_dot': r'^\s*([IVXLCDM]+)\.\s+',  # I. 项目
+        'lower_roman_with_paren': r'^\s*([ivxlcdm]+)\)\s+',  # i) 项目
+        'upper_roman_with_paren': r'^\s*([IVXLCDM]+)\)\s+',  # I) 项目
+        
+        # 多级编号
+        'multi_level_arabic': r'^\s*(\d+\.\d+(?:\.\d+)*)\s+',  # 1.1. 项目、1.1.1. 项目
+        'multi_level_chinese': r'^\s*([一二三四五六七八九十]+)、\s*(\d+)\.\s+',  # 一、1. 项目
+        'multi_level_mixed': r'^\s*(\d+)\.\s*\(([a-z])\)\s+',  # 1. (a) 项目
+        
+        # 其他常见格式
+        'number_with_slash': r'^\s*(\d+)/(\d+)\s+',  # 1/2 项目
+        'number_with_period': r'^\s*(\d+)\.(\d+)\s+',  # 1.2 项目（无空格）
     }
     return patterns
 
@@ -37,6 +60,17 @@ def get_bullet_patterns() -> List[str]:
         r'^\s*\*\s+',  # 星号
         r'^\s*-\s+',   # 连字符
         r'^\s+•\s+',   # 实心圆点
+        r'^\s*◦\s+',   # 空心圆点
+        r'^\s*▪\s+',   # 实心方块
+        r'^\s*▫\s+',   # 空心方块
+        r'^\s*▸\s+',   # 右箭头
+        r'^\s*▶\s+',   # 实心右箭头
+        r'^\s*→\s+',   # 箭头
+        r'^\s*⇒\s+',   # 双箭头
+        r'^\s*✓\s+',   # 对勾
+        r'^\s*✗\s+',   # 叉号
+        r'^\s*☑\s+',   # 复选框
+        r'^\s*☒\s+',   # 选中的复选框
     ]
 
 

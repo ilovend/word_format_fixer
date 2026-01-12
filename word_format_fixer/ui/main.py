@@ -57,7 +57,10 @@ class WordFixerApp:
         # 变量
         self.input_file = tk.StringVar()
         self.output_file = tk.StringVar()
+        self.output_dir = tk.StringVar()
         self.preset = tk.StringVar(value='default')
+        self.batch_mode = tk.BooleanVar(value=False)
+        self.batch_files = []
         
         # 字体设置
         self.chinese_font = tk.StringVar(value='宋体')
@@ -207,7 +210,14 @@ class WordFixerApp:
         file_frame = ttk.LabelFrame(self.inner_frame, text="文件选择", padding="10")
         file_frame.pack(fill=tk.X, pady=5)
         
-        # 输入文件
+        # 批量模式
+        batch_frame = ttk.Frame(file_frame)
+        batch_frame.pack(fill=tk.X, pady=5)
+        
+        ttk.Checkbutton(batch_frame, text="批量模式", variable=self.batch_mode, command=self.on_batch_mode_change).pack(side=tk.LEFT, padx=5)
+        ttk.Label(batch_frame, text="(支持选择多个文件或文件夹)", font=('微软雅黑', 9, 'italic'), foreground='#666666').pack(side=tk.LEFT, padx=5)
+        
+        # 输入文件（单文件模式）
         input_frame = ttk.Frame(file_frame)
         input_frame.pack(fill=tk.X, pady=5)
         
@@ -215,13 +225,48 @@ class WordFixerApp:
         ttk.Entry(input_frame, textvariable=self.input_file).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
         ttk.Button(input_frame, text="浏览", command=self.browse_input_file, width=10).pack(side=tk.LEFT, padx=5)
         
-        # 输出文件
+        # 批量文件选择（批量模式）
+        batch_input_frame = ttk.Frame(file_frame)
+        batch_input_frame.pack(fill=tk.X, pady=5)
+        
+        ttk.Label(batch_input_frame, text="批量选择:", width=10).pack(side=tk.LEFT, padx=5)
+        batch_buttons_frame = ttk.Frame(batch_input_frame)
+        batch_buttons_frame.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+        ttk.Button(batch_buttons_frame, text="选择多个文件", command=self.browse_batch_files, width=12).pack(side=tk.LEFT, padx=5)
+        ttk.Button(batch_buttons_frame, text="选择文件夹", command=self.browse_batch_folder, width=12).pack(side=tk.LEFT, padx=5)
+        
+        # 批量文件列表显示
+        batch_files_frame = ttk.LabelFrame(file_frame, text="已选择的文件", padding="10")
+        batch_files_frame.pack(fill=tk.BOTH, expand=True, pady=5)
+        
+        # 添加滚动条
+        batch_scrollbar = ttk.Scrollbar(batch_files_frame)
+        batch_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        self.batch_files_listbox = tk.Listbox(
+            batch_files_frame, 
+            yscrollcommand=batch_scrollbar.set,
+            font=('微软雅黑', 10),
+            height=6
+        )
+        self.batch_files_listbox.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        batch_scrollbar.config(command=self.batch_files_listbox.yview)
+        
+        # 输出文件（单文件模式）
         output_frame = ttk.Frame(file_frame)
         output_frame.pack(fill=tk.X, pady=5)
         
         ttk.Label(output_frame, text="输出文件:", width=10).pack(side=tk.LEFT, padx=5)
         ttk.Entry(output_frame, textvariable=self.output_file).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
         ttk.Button(output_frame, text="浏览", command=self.browse_output_file, width=10).pack(side=tk.LEFT, padx=5)
+        
+        # 输出目录（批量模式）
+        output_dir_frame = ttk.Frame(file_frame)
+        output_dir_frame.pack(fill=tk.X, pady=5)
+        
+        ttk.Label(output_dir_frame, text="输出目录:", width=10).pack(side=tk.LEFT, padx=5)
+        ttk.Entry(output_dir_frame, textvariable=self.output_dir).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+        ttk.Button(output_dir_frame, text="浏览", command=self.browse_output_dir, width=10).pack(side=tk.LEFT, padx=5)
         
         # 提示信息
         hint_frame = ttk.Frame(file_frame)
@@ -239,12 +284,12 @@ class WordFixerApp:
         preset_frame.pack(fill=tk.X, pady=5)
         
         ttk.Label(preset_frame, text="预设配置:", width=12).pack(side=tk.LEFT, padx=5)
-        preset_combo = ttk.Combobox(preset_frame, textvariable=self.preset, values=['default', 'bid_document', 'compact', 'print_ready'], state='readonly', width=20)
+        preset_combo = ttk.Combobox(preset_frame, textvariable=self.preset, values=['default', 'bid_document', 'compact', 'print_ready', 'academic_paper', 'resume', 'report', 'presentation'], state='readonly', width=20)
         preset_combo.pack(side=tk.LEFT, padx=5)
         preset_combo.bind('<<ComboboxSelected>>', self.on_preset_change)
         
         # 预设配置说明
-        preset_hint = ttk.Label(preset_frame, text="(默认/标书专用/紧凑/打印就绪)", font=('微软雅黑', 9, 'italic'), foreground='#666666')
+        preset_hint = ttk.Label(preset_frame, text="(默认/标书/紧凑/打印/学术/简历/报告/演示)", font=('微软雅黑', 9, 'italic'), foreground='#666666')
         preset_hint.pack(side=tk.LEFT, padx=5)
         
         # 字体设置
@@ -348,6 +393,13 @@ class WordFixerApp:
         self.reset_button = ttk.Button(button_center_frame, text="重置", command=self.reset_to_preset)
         self.reset_button.pack(side=tk.LEFT, padx=10, ipady=5)
         
+        # 配置文件操作按钮
+        config_buttons_frame = ttk.Frame(button_center_frame)
+        config_buttons_frame.pack(side=tk.LEFT, padx=10)
+        
+        ttk.Button(config_buttons_frame, text="导出配置", command=self.export_config).pack(side=tk.LEFT, padx=5, ipady=5)
+        ttk.Button(config_buttons_frame, text="导入配置", command=self.import_config).pack(side=tk.LEFT, padx=5, ipady=5)
+        
         # 退出按钮
         self.cancel_button = ttk.Button(button_center_frame, text="退出", command=self.root.quit)
         self.cancel_button.pack(side=tk.LEFT, padx=10, ipady=5) 
@@ -405,6 +457,82 @@ class WordFixerApp:
         filename = filedialog.asksaveasfilename(title="选择输出文件", filetypes=filetypes, defaultextension=".docx")
         if filename:
             self.output_file.set(filename)
+    
+    def on_batch_mode_change(self):
+        """批量模式切换时的处理"""
+        batch_mode = self.batch_mode.get()
+        if batch_mode:
+            self.log("已切换到批量模式")
+        else:
+            self.log("已切换到单文件模式")
+    
+    def update_batch_files_listbox(self):
+        """更新批量文件列表框"""
+        if hasattr(self, 'batch_files_listbox'):
+            # 清空列表
+            self.batch_files_listbox.delete(0, tk.END)
+            
+            # 添加文件到列表
+            for file in self.batch_files:
+                # 显示文件名和路径的简短版本
+                short_path = file
+                if len(file) > 80:
+                    # 截取路径，显示开头和结尾
+                    drive, path = os.path.splitdrive(file)
+                    if len(path) > 70:
+                        parts = path.split(os.sep)
+                        if len(parts) > 3:
+                            short_path = f"{drive}{os.sep}{parts[1]}...{os.sep}{os.sep.join(parts[-2:])}"
+                self.batch_files_listbox.insert(tk.END, short_path)
+            
+            # 更新列表框标题
+            if hasattr(self, 'batch_files_frame'):
+                self.batch_files_frame.config(text=f"已选择的文件 ({len(self.batch_files)}个)")
+    
+    def browse_batch_files(self):
+        """选择多个文件"""
+        filetypes = [('Word文档', '*.docx'), ('所有文件', '*.*')]
+        filenames = filedialog.askopenfilenames(title="选择多个文件", filetypes=filetypes)
+        if filenames:
+            self.batch_files = list(filenames)
+            self.log(f"已选择 {len(self.batch_files)} 个文件")
+            for file in self.batch_files[:5]:  # 只显示前5个文件
+                self.log(f"  - {file}")
+            if len(self.batch_files) > 5:
+                self.log(f"  ... 等{len(self.batch_files) - 5}个文件")
+            # 更新列表框
+            self.update_batch_files_listbox()
+    
+    def browse_batch_folder(self):
+        """选择文件夹"""
+        folder = filedialog.askdirectory(title="选择文件夹")
+        if folder:
+            # 遍历文件夹中的所有docx文件
+            docx_files = []
+            for root, _, files in os.walk(folder):
+                for file in files:
+                    if file.lower().endswith('.docx'):
+                        docx_files.append(os.path.join(root, file))
+            
+            if docx_files:
+                self.batch_files = docx_files
+                self.log(f"已选择文件夹: {folder}")
+                self.log(f"找到 {len(self.batch_files)} 个Word文档")
+                for file in self.batch_files[:5]:  # 只显示前5个文件
+                    self.log(f"  - {file}")
+                if len(self.batch_files) > 5:
+                    self.log(f"  ... 等{len(self.batch_files) - 5}个文件")
+                # 更新列表框
+                self.update_batch_files_listbox()
+            else:
+                messagebox.showinfo("提示", "所选文件夹中没有找到Word文档")
+    
+    def browse_output_dir(self):
+        """选择批量输出目录"""
+        folder = filedialog.askdirectory(title="选择输出目录")
+        if folder:
+            self.output_dir.set(folder)
+            self.log(f"已选择输出目录: {folder}")
     
     def on_preset_change(self, event):
         """预设配置改变时的处理"""
@@ -488,22 +616,6 @@ class WordFixerApp:
         self.log(f"已恢复预设配置: {preset}")    
     def fix_document(self):
         """开始修复文档"""
-        input_file = self.input_file.get()
-        output_file = self.output_file.get()
-        
-        # 验证输入
-        if not input_file:
-            messagebox.showerror("错误", "请选择输入文件")
-            return
-        
-        if not output_file:
-            messagebox.showerror("错误", "请选择输出文件")
-            return
-        
-        if not os.path.exists(input_file):
-            messagebox.showerror("错误", "输入文件不存在")
-            return
-        
         try:
             # 更新状态
             self.status_var.set("正在修复...")
@@ -535,7 +647,7 @@ class WordFixerApp:
                 'auto_adjust_columns': self.auto_adjust_columns.get(),
             })
             
-            # 创建修复器并执行修复
+            # 创建修复器
             fixer = RobustWordFixer(config)
             
             # 重定向标准输出到日志
@@ -552,18 +664,52 @@ class WordFixerApp:
             sys.stdout = LogRedirector(self.log_text)
             
             # 执行修复
-            result = fixer.fix_all(input_file, output_file)
+            batch_mode = self.batch_mode.get()
+            if batch_mode:
+                # 批量模式
+                if not self.batch_files:
+                    messagebox.showerror("错误", "请选择要处理的文件")
+                    return
+                
+                output_dir = self.output_dir.get() if self.output_dir.get() else None
+                results = fixer.fix_batch(self.batch_files, output_dir)
+                
+                # 统计结果
+                success_count = sum(1 for v in results.values() if v is not None)
+                failed_count = len(results) - success_count
+                
+                self.status_var.set("修复完成")
+                messagebox.showinfo("成功", f"批量修复完成！\n成功: {success_count} 个文件\n失败: {failed_count} 个文件")
+            else:
+                # 单文件模式
+                input_file = self.input_file.get()
+                output_file = self.output_file.get()
+                
+                # 验证输入
+                if not input_file:
+                    messagebox.showerror("错误", "请选择输入文件")
+                    return
+                
+                if not output_file:
+                    messagebox.showerror("错误", "请选择输出文件")
+                    return
+                
+                if not os.path.exists(input_file):
+                    messagebox.showerror("错误", "输入文件不存在")
+                    return
+                
+                result = fixer.fix_all(input_file, output_file)
+                
+                if result:
+                    self.status_var.set("修复完成")
+                    messagebox.showinfo("成功", f"文档修复完成！\n输出文件: {result}")
+                else:
+                    self.status_var.set("修复失败")
+                    messagebox.showerror("错误", "文档修复失败，请查看日志")
             
             # 恢复标准输出
             sys.stdout = old_stdout
             
-            if result:
-                self.status_var.set("修复完成")
-                messagebox.showinfo("成功", f"文档修复完成！\n输出文件: {result}")
-            else:
-                self.status_var.set("修复失败")
-                messagebox.showerror("错误", "文档修复失败，请查看日志")
-                
         except Exception as e:
             self.status_var.set("错误")
             self.log(f"错误: {str(e)}")
@@ -576,6 +722,86 @@ class WordFixerApp:
         """记录日志"""
         self.log_text.insert(tk.END, message + "\n")
         self.log_text.see(tk.END)
+    
+    def export_config(self):
+        """导出配置文件"""
+        from ..core.config import save_config
+        
+        filetypes = [('YAML配置文件', '*.yaml'), ('所有文件', '*.*')]
+        filename = filedialog.asksaveasfilename(title="导出配置文件", filetypes=filetypes, defaultextension=".yaml")
+        if filename:
+            try:
+                # 构建当前配置
+                config = {
+                    # 字体设置
+                    'chinese_font': self.chinese_font.get(),
+                    'western_font': self.western_font.get(),
+                    'title_font': self.title_font.get(),
+                    # 字号设置
+                    'font_size_body': self.font_size_body.get(),
+                    'font_size_title1': self.font_size_title1.get(),
+                    'font_size_title2': self.font_size_title2.get(),
+                    'font_size_title3': self.font_size_title3.get(),
+                    # 页面设置
+                    'page_margin_top_cm': self.margin_top.get(),
+                    'page_margin_bottom_cm': self.margin_bottom.get(),
+                    'page_margin_left_cm': self.margin_left.get(),
+                    'page_margin_right_cm': self.margin_right.get(),
+                    # 表格设置
+                    'table_width_percent': self.table_width_percent.get(),
+                    'auto_adjust_columns': self.auto_adjust_columns.get(),
+                }
+                
+                save_config(config, filename)
+                self.log(f"配置文件已导出到: {filename}")
+                messagebox.showinfo("成功", f"配置文件已成功导出到:\n{filename}")
+            except Exception as e:
+                self.log(f"导出配置文件失败: {str(e)}")
+                messagebox.showerror("错误", f"导出配置文件失败: {str(e)}")
+    
+    def import_config(self):
+        """导入配置文件"""
+        from ..core.config import load_config
+        
+        filetypes = [('YAML配置文件', '*.yaml'), ('所有文件', '*.*')]
+        filename = filedialog.askopenfilename(title="导入配置文件", filetypes=filetypes)
+        if filename:
+            try:
+                config = load_config(filename)
+                
+                # 更新UI控件
+                if 'chinese_font' in config:
+                    self.chinese_font.set(config['chinese_font'])
+                if 'western_font' in config:
+                    self.western_font.set(config['western_font'])
+                if 'title_font' in config:
+                    self.title_font.set(config['title_font'])
+                if 'font_size_body' in config:
+                    self.font_size_body.set(config['font_size_body'])
+                if 'font_size_title1' in config:
+                    self.font_size_title1.set(config['font_size_title1'])
+                if 'font_size_title2' in config:
+                    self.font_size_title2.set(config['font_size_title2'])
+                if 'font_size_title3' in config:
+                    self.font_size_title3.set(config['font_size_title3'])
+                if 'page_margin_top_cm' in config:
+                    self.margin_top.set(config['page_margin_top_cm'])
+                if 'page_margin_bottom_cm' in config:
+                    self.margin_bottom.set(config['page_margin_bottom_cm'])
+                if 'page_margin_left_cm' in config:
+                    self.margin_left.set(config['page_margin_left_cm'])
+                if 'page_margin_right_cm' in config:
+                    self.margin_right.set(config['page_margin_right_cm'])
+                if 'table_width_percent' in config:
+                    self.table_width_percent.set(config['table_width_percent'])
+                if 'auto_adjust_columns' in config:
+                    self.auto_adjust_columns.set(config['auto_adjust_columns'])
+                
+                self.log(f"配置文件已从: {filename} 导入")
+                messagebox.showinfo("成功", f"配置文件已成功导入:\n{filename}")
+            except Exception as e:
+                self.log(f"导入配置文件失败: {str(e)}")
+                messagebox.showerror("错误", f"导入配置文件失败: {str(e)}")
 
 
 def run_app():

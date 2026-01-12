@@ -121,7 +121,7 @@ class RobustWordFixer:
             self.available_width_cm = available_width_cm
     
     def optimize_table_width(self):
-        """优化表格宽度 - 修复版本"""
+        """优化表格宽度 - 支持复杂表格结构"""
         if not self.config['fix_table_width'] or not self.document.tables:
             return
         
@@ -129,6 +129,16 @@ class RobustWordFixer:
         
         for table_idx, table in enumerate(self.document.tables):
             print(f"  处理表格 {table_idx + 1}: {len(table.columns)}列")
+            
+            # 检查是否有合并单元格
+            has_merged_cells = self._check_merged_cells(table)
+            if has_merged_cells:
+                print(f"    注意: 表格包含合并单元格")
+            
+            # 检查是否有嵌套表格
+            has_nested_tables = self._check_nested_tables(table)
+            if has_nested_tables:
+                print(f"    注意: 表格包含嵌套表格")
             
             # 计算表格宽度
             table_width_cm = self.available_width_cm * self.config['table_width_percent'] / 100
@@ -158,21 +168,87 @@ class RobustWordFixer:
                 for col in table.columns:
                     col.width = Cm(col_width_cm)
                 print(f"    平均列宽: {col_width_cm:.1f}cm")
+            
+            # 处理嵌套表格
+            if has_nested_tables:
+                self._process_nested_tables(table)
+    
+    def _check_merged_cells(self, table):
+        """检查表格是否有合并单元格"""
+        for row in table.rows:
+            for cell in row.cells:
+                # 检查是否有vMerge或hMerge属性（使用本地名称查询）
+                tcPr = cell._tc.get_or_add_tcPr()
+                for child in tcPr.iter():
+                    local_name = child.tag.split('}')[-1] if '}' in child.tag else child.tag
+                    if local_name in ['vMerge', 'hMerge']:
+                        return True
+        return False
+    
+    def _check_nested_tables(self, table):
+        """检查表格是否有嵌套表格"""
+        for row in table.rows:
+            for cell in row.cells:
+                if len(cell.tables) > 0:
+                    return True
+        return False
+    
+    def _process_nested_tables(self, table):
+        """处理嵌套表格"""
+        for row in table.rows:
+            for cell in row.cells:
+                for nested_table in cell.tables:
+                    # 为嵌套表格设置较小的宽度
+                    nested_table_width_cm = cell.width.cm * 0.9 if cell.width else self.available_width_cm * 0.7
+                    nested_table.width = Cm(nested_table_width_cm)
+                    nested_table.alignment = WD_ALIGN_PARAGRAPH.LEFT
+                    
+                    # 为嵌套表格添加边框
+                    for nested_row in nested_table.rows:
+                        for nested_cell in nested_row.cells:
+                            self._set_cell_border(nested_cell, border_size=2)
+                    
+                    print(f"    处理了一个嵌套表格，宽度: {nested_table_width_cm:.1f}cm")
     
     def _auto_adjust_column_widths(self, table, table_width_cm):
-        """自动调整列宽"""
+        """自动调整列宽 - 支持复杂表格"""
         col_count = len(table.columns)
         max_lengths = [0] * col_count
         
         for row in table.rows:
             for j, cell in enumerate(row.cells):
+                # 处理合并单元格的情况
+                # 检查单元格是否跨列
+                tcPr = cell._tc.get_or_add_tcPr()
+                # 使用本地名称查询替代带有命名空间前缀的XPath查询
+                gridSpan = None
+                for child in tcPr.iter():
+                    local_name = child.tag.split('}')[-1] if '}' in child.tag else child.tag
+                    if local_name == 'gridSpan':
+                        gridSpan = child
+                        break
+                span = 1
+                if gridSpan is not None:
+                    # 查找val属性
+                    val = None
+                    for attr in gridSpan.attrib:
+                        local_attr_name = attr.split('}')[-1] if '}' in attr else attr
+                        if local_attr_name == 'val':
+                            val = gridSpan.attrib[attr]
+                            break
+                    if val:
+                        span = int(val)
+                
                 text = cell.text.strip()
                 if text:
                     # 估算文本长度（中文占2个字符宽度）
                     chinese_chars = len(re.findall(r'[\u4e00-\u9fff]', text))
                     english_chars = len(text) - chinese_chars
-                    length = english_chars + chinese_chars * 2
-                    max_lengths[j] = max(max_lengths[j], length)
+                    length = (english_chars + chinese_chars * 2) / span  # 平均分配到跨列
+                    
+                    # 更新跨列的最大长度
+                    for k in range(j, min(j + span, col_count)):
+                        max_lengths[k] = max(max_lengths[k], length)
         
         total_length = sum(max_lengths) if sum(max_lengths) > 0 else 1
         
@@ -425,7 +501,7 @@ class RobustWordFixer:
     def fix_all(self, filepath: str, output_path: str = None):
         """执行所有修复"""
         print("=" * 60)
-        print("开始修复文档格式")
+        print(f"开始修复文档格式: {filepath}")
         print("=" * 60)
         
         try:
@@ -465,3 +541,60 @@ class RobustWordFixer:
             import traceback
             traceback.print_exc()
             return None
+    
+    def fix_batch(self, filepaths: list, output_dir: str = None):
+        """批量修复多个文档
+        
+        Args:
+            filepaths: 文件路径列表
+            output_dir: 输出目录，None表示在原文件目录保存
+            
+        Returns:
+            修复结果字典，键为输入文件路径，值为输出文件路径或None（失败）
+        """
+        print("=" * 60)
+        print(f"开始批量修复，共{len(filepaths)}个文件")
+        print("=" * 60)
+        
+        results = {}
+        total_success = 0
+        total_failed = 0
+        
+        for i, filepath in enumerate(filepaths, 1):
+            print(f"\n{'-' * 60}")
+            print(f"处理文件 {i}/{len(filepaths)}: {filepath}")
+            print(f"{'-' * 60}")
+            
+            try:
+                # 生成输出路径
+                if output_dir:
+                    filename = os.path.basename(filepath)
+                    base, ext = os.path.splitext(filename)
+                    output_path = os.path.join(output_dir, f"{base}_fixed{ext}")
+                else:
+                    output_path = None
+                
+                # 执行修复
+                result = self.fix_all(filepath, output_path)
+                
+                if result:
+                    results[filepath] = result
+                    total_success += 1
+                    print(f"✓ 修复成功: {result}")
+                else:
+                    results[filepath] = None
+                    total_failed += 1
+                    print(f"✗ 修复失败")
+                    
+            except Exception as e:
+                results[filepath] = None
+                total_failed += 1
+                print(f"✗ 处理错误: {e}")
+        
+        print("\n" + "=" * 60)
+        print("批量修复完成！")
+        print(f"成功: {total_success} 个文件")
+        print(f"失败: {total_failed} 个文件")
+        print("=" * 60)
+        
+        return results

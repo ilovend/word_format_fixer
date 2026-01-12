@@ -25,7 +25,7 @@ class TestUtils(unittest.TestCase):
         """测试获取项目符号模式"""
         patterns = get_bullet_patterns()
         self.assertIsInstance(patterns, list)
-        self.assertEqual(len(patterns), 4)
+        self.assertEqual(len(patterns), 15)
 
     def test_is_title_paragraph(self):
         """测试判断是否为标题段落"""
