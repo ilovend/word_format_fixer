@@ -115,7 +115,7 @@ class WordFixerApp:
         self.scroll_frame.pack(fill=tk.BOTH, expand=True)
         
         # 创建画布和滚动条
-        self.canvas = tk.Canvas(self.scroll_frame)
+        self.canvas = tk.Canvas(self.scroll_frame, bg='#f0f0f0')
         self.scrollbar = ttk.Scrollbar(self.scroll_frame, orient="vertical", command=self.canvas.yview)
         
         # 创建内部框架
@@ -134,9 +134,9 @@ class WordFixerApp:
 
         # 当 canvas 大小改变时，调整内部窗口宽度并尽量居中（避免右侧空白或左侧挤压）
         def _on_canvas_configure(e):
-            # 保留左右边距 20px，总最大宽度 900px
-            max_content_width = 900
-            padding = 20
+            # 移除宽度限制和边距，让内容充满整个窗口
+            max_content_width = float('inf')  # 无限宽度
+            padding = 0  # 移除边距
             available = max(padding, e.width - padding * 2)
             content_width = min(available, max_content_width)
 
@@ -275,11 +275,11 @@ class WordFixerApp:
         hint_label = ttk.Label(hint_frame, text="提示: 选择输入文件后，输出文件路径会自动填充", font=('微软雅黑', 9, 'italic'), foreground='#666666')
         hint_label.pack(side=tk.LEFT, padx=5)
         
-        # 配置部分
+        # 配置部分 - 手风琴样式
         config_frame = ttk.LabelFrame(self.inner_frame, text="配置选项", padding="10")
         config_frame.pack(fill=tk.X, pady=5)
         
-        # 预设配置
+        # 预设配置（始终显示）
         preset_frame = ttk.Frame(config_frame)
         preset_frame.pack(fill=tk.X, pady=5)
         
@@ -292,84 +292,20 @@ class WordFixerApp:
         preset_hint = ttk.Label(preset_frame, text="(默认/标书/紧凑/打印/学术/简历/报告/演示)", font=('微软雅黑', 9, 'italic'), foreground='#666666')
         preset_hint.pack(side=tk.LEFT, padx=5)
         
-        # 字体设置
-        font_frame = ttk.LabelFrame(config_frame, text="字体设置", padding="10")
-        font_frame.pack(fill=tk.X, pady=5)
+        # 创建手风琴容器
+        self.accordion = {}  # 存储手风琴状态
         
-        font_row1 = ttk.Frame(font_frame)
-        font_row1.pack(fill=tk.X, pady=5)
+        # 字体设置手风琴
+        self.create_accordion_section(config_frame, "font_settings", "字体设置", self.create_font_settings)
         
-        ttk.Label(font_row1, text="中文字体:", width=12).pack(side=tk.LEFT, padx=5)
-        ttk.Entry(font_row1, textvariable=self.chinese_font, width=15).pack(side=tk.LEFT, padx=5)
+        # 字号设置手风琴
+        self.create_accordion_section(config_frame, "size_settings", "字号设置", self.create_size_settings)
         
-        ttk.Label(font_row1, text="西文字体:", width=12).pack(side=tk.LEFT, padx=5)
-        ttk.Entry(font_row1, textvariable=self.western_font, width=15).pack(side=tk.LEFT, padx=5)
+        # 页面设置手风琴
+        self.create_accordion_section(config_frame, "page_settings", "页面设置", self.create_page_settings)
         
-        font_row2 = ttk.Frame(font_frame)
-        font_row2.pack(fill=tk.X, pady=5)
-        
-        ttk.Label(font_row2, text="标题字体:", width=12).pack(side=tk.LEFT, padx=5)
-        ttk.Entry(font_row2, textvariable=self.title_font, width=15).pack(side=tk.LEFT, padx=5)
-        
-        # 字号设置
-        size_frame = ttk.LabelFrame(config_frame, text="字号设置 (磅)", padding="10")
-        size_frame.pack(fill=tk.X, pady=5)
-        
-        size_row1 = ttk.Frame(size_frame)
-        size_row1.pack(fill=tk.X, pady=5)
-        
-        ttk.Label(size_row1, text="正文字号:", width=12).pack(side=tk.LEFT, padx=5)
-        ttk.Entry(size_row1, textvariable=self.font_size_body, width=10).pack(side=tk.LEFT, padx=5)
-        
-        ttk.Label(size_row1, text="一级标题:", width=12).pack(side=tk.LEFT, padx=5)
-        ttk.Entry(size_row1, textvariable=self.font_size_title1, width=10).pack(side=tk.LEFT, padx=5)
-        
-        size_row2 = ttk.Frame(size_frame)
-        size_row2.pack(fill=tk.X, pady=5)
-        
-        ttk.Label(size_row2, text="二级标题:", width=12).pack(side=tk.LEFT, padx=5)
-        ttk.Entry(size_row2, textvariable=self.font_size_title2, width=10).pack(side=tk.LEFT, padx=5)
-        
-        ttk.Label(size_row2, text="三级标题:", width=12).pack(side=tk.LEFT, padx=5)
-        ttk.Entry(size_row2, textvariable=self.font_size_title3, width=10).pack(side=tk.LEFT, padx=5)
-        
-        # 页面设置
-        page_frame = ttk.LabelFrame(config_frame, text="页面设置 (厘米)", padding="10")
-        page_frame.pack(fill=tk.X, pady=5)
-        
-        page_row1 = ttk.Frame(page_frame)
-        page_row1.pack(fill=tk.X, pady=5)
-        
-        ttk.Label(page_row1, text="上边距:", width=12).pack(side=tk.LEFT, padx=5)
-        ttk.Entry(page_row1, textvariable=self.margin_top, width=10).pack(side=tk.LEFT, padx=5)
-        
-        ttk.Label(page_row1, text="下边距:", width=12).pack(side=tk.LEFT, padx=5)
-        ttk.Entry(page_row1, textvariable=self.margin_bottom, width=10).pack(side=tk.LEFT, padx=5)
-        
-        page_row2 = ttk.Frame(page_frame)
-        page_row2.pack(fill=tk.X, pady=5)
-        
-        ttk.Label(page_row2, text="左边距:", width=12).pack(side=tk.LEFT, padx=5)
-        ttk.Entry(page_row2, textvariable=self.margin_left, width=10).pack(side=tk.LEFT, padx=5)
-        
-        ttk.Label(page_row2, text="右边距:", width=12).pack(side=tk.LEFT, padx=5)
-        ttk.Entry(page_row2, textvariable=self.margin_right, width=10).pack(side=tk.LEFT, padx=5)
-        
-        # 表格设置
-        table_frame = ttk.LabelFrame(config_frame, text="表格设置", padding="10")
-        table_frame.pack(fill=tk.X, pady=5)
-        
-        table_row1 = ttk.Frame(table_frame)
-        table_row1.pack(fill=tk.X, pady=5)
-        
-        ttk.Label(table_row1, text="表格宽度 (%):", width=12).pack(side=tk.LEFT, padx=5)
-        ttk.Entry(table_row1, textvariable=self.table_width_percent, width=10).pack(side=tk.LEFT, padx=5)
-        
-        table_row2 = ttk.Frame(table_frame)
-        table_row2.pack(fill=tk.X, pady=5)
-        
-        ttk.Label(table_row2, text="自动调整列宽:", width=12).pack(side=tk.LEFT, padx=5)
-        ttk.Checkbutton(table_row2, variable=self.auto_adjust_columns).pack(side=tk.LEFT, padx=5)
+        # 表格设置手风琴
+        self.create_accordion_section(config_frame, "table_settings", "表格设置", self.create_table_settings)
         
         # 操作按钮
         button_frame = ttk.Frame(self.inner_frame)
@@ -802,6 +738,154 @@ class WordFixerApp:
             except Exception as e:
                 self.log(f"导入配置文件失败: {str(e)}")
                 messagebox.showerror("错误", f"导入配置文件失败: {str(e)}")
+    
+    def create_accordion_section(self, parent, section_id, title, content_creator):
+        """创建手风琴 sections
+        
+        Args:
+            parent: 父容器
+            section_id: section ID
+            title: 标题
+            content_creator: 内容创建函数
+        """
+        # 创建section容器
+        section_frame = ttk.Frame(parent)
+        section_frame.pack(fill=tk.X, pady=2)
+        
+        # 创建标题按钮
+        title_frame = ttk.Frame(section_frame)
+        title_frame.pack(fill=tk.X)
+        
+        # 箭头标签
+        self.accordion[section_id] = {'expanded': False}
+        arrow_label = ttk.Label(title_frame, text="▶", font=('微软雅黑', 9))
+        arrow_label.pack(side=tk.LEFT, padx=5)
+        
+        # 标题按钮
+        title_button = ttk.Button(
+            title_frame, 
+            text=title, 
+            style='TButton',
+            command=lambda: self.toggle_accordion(section_id, arrow_label, content_frame)
+        )
+        title_button.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        
+        # 创建内容容器
+        content_frame = ttk.Frame(section_frame)
+        
+        # 初始隐藏
+        content_frame.pack_forget()
+        
+        # 存储到字典
+        self.accordion[section_id]['frame'] = content_frame
+        self.accordion[section_id]['arrow'] = arrow_label
+        
+        # 创建内容
+        content_creator(content_frame)
+    
+    def toggle_accordion(self, section_id, arrow_label, content_frame):
+        """切换手风琴 section 的展开/折叠状态
+        
+        Args:
+            section_id: section ID
+            arrow_label: 箭头标签
+            content_frame: 内容框架
+        """
+        expanded = self.accordion[section_id]['expanded']
+        
+        if expanded:
+            # 折叠
+            content_frame.pack_forget()
+            arrow_label.config(text="▶")
+            self.accordion[section_id]['expanded'] = False
+        else:
+            # 展开
+            content_frame.pack(fill=tk.X, pady=5)
+            arrow_label.config(text="▼")
+            self.accordion[section_id]['expanded'] = True
+    
+    def create_font_settings(self, parent):
+        """创建字体设置内容"""
+        font_frame = ttk.Frame(parent, padding="10")
+        font_frame.pack(fill=tk.X)
+        
+        font_row1 = ttk.Frame(font_frame)
+        font_row1.pack(fill=tk.X, pady=5)
+        
+        ttk.Label(font_row1, text="中文字体:", width=12).pack(side=tk.LEFT, padx=5)
+        ttk.Entry(font_row1, textvariable=self.chinese_font, width=15).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Label(font_row1, text="西文字体:", width=12).pack(side=tk.LEFT, padx=5)
+        ttk.Entry(font_row1, textvariable=self.western_font, width=15).pack(side=tk.LEFT, padx=5)
+        
+        font_row2 = ttk.Frame(font_frame)
+        font_row2.pack(fill=tk.X, pady=5)
+        
+        ttk.Label(font_row2, text="标题字体:", width=12).pack(side=tk.LEFT, padx=5)
+        ttk.Entry(font_row2, textvariable=self.title_font, width=15).pack(side=tk.LEFT, padx=5)
+    
+    def create_size_settings(self, parent):
+        """创建字号设置内容"""
+        size_frame = ttk.Frame(parent, padding="10")
+        size_frame.pack(fill=tk.X)
+        
+        size_row1 = ttk.Frame(size_frame)
+        size_row1.pack(fill=tk.X, pady=5)
+        
+        ttk.Label(size_row1, text="正文字号:", width=12).pack(side=tk.LEFT, padx=5)
+        ttk.Entry(size_row1, textvariable=self.font_size_body, width=10).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Label(size_row1, text="一级标题:", width=12).pack(side=tk.LEFT, padx=5)
+        ttk.Entry(size_row1, textvariable=self.font_size_title1, width=10).pack(side=tk.LEFT, padx=5)
+        
+        size_row2 = ttk.Frame(size_frame)
+        size_row2.pack(fill=tk.X, pady=5)
+        
+        ttk.Label(size_row2, text="二级标题:", width=12).pack(side=tk.LEFT, padx=5)
+        ttk.Entry(size_row2, textvariable=self.font_size_title2, width=10).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Label(size_row2, text="三级标题:", width=12).pack(side=tk.LEFT, padx=5)
+        ttk.Entry(size_row2, textvariable=self.font_size_title3, width=10).pack(side=tk.LEFT, padx=5)
+    
+    def create_page_settings(self, parent):
+        """创建页面设置内容"""
+        page_frame = ttk.Frame(parent, padding="10")
+        page_frame.pack(fill=tk.X)
+        
+        page_row1 = ttk.Frame(page_frame)
+        page_row1.pack(fill=tk.X, pady=5)
+        
+        ttk.Label(page_row1, text="上边距:", width=12).pack(side=tk.LEFT, padx=5)
+        ttk.Entry(page_row1, textvariable=self.margin_top, width=10).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Label(page_row1, text="下边距:", width=12).pack(side=tk.LEFT, padx=5)
+        ttk.Entry(page_row1, textvariable=self.margin_bottom, width=10).pack(side=tk.LEFT, padx=5)
+        
+        page_row2 = ttk.Frame(page_frame)
+        page_row2.pack(fill=tk.X, pady=5)
+        
+        ttk.Label(page_row2, text="左边距:", width=12).pack(side=tk.LEFT, padx=5)
+        ttk.Entry(page_row2, textvariable=self.margin_left, width=10).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Label(page_row2, text="右边距:", width=12).pack(side=tk.LEFT, padx=5)
+        ttk.Entry(page_row2, textvariable=self.margin_right, width=10).pack(side=tk.LEFT, padx=5)
+    
+    def create_table_settings(self, parent):
+        """创建表格设置内容"""
+        table_frame = ttk.Frame(parent, padding="10")
+        table_frame.pack(fill=tk.X)
+        
+        table_row1 = ttk.Frame(table_frame)
+        table_row1.pack(fill=tk.X, pady=5)
+        
+        ttk.Label(table_row1, text="表格宽度 (%):", width=12).pack(side=tk.LEFT, padx=5)
+        ttk.Entry(table_row1, textvariable=self.table_width_percent, width=10).pack(side=tk.LEFT, padx=5)
+        
+        table_row2 = ttk.Frame(table_frame)
+        table_row2.pack(fill=tk.X, pady=5)
+        
+        ttk.Label(table_row2, text="自动调整列宽:", width=12).pack(side=tk.LEFT, padx=5)
+        ttk.Checkbutton(table_row2, variable=self.auto_adjust_columns).pack(side=tk.LEFT, padx=5)
 
 
 def run_app():
