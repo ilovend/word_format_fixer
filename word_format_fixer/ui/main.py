@@ -94,7 +94,7 @@ class WordFixerApp:
         title_label = ttk.Label(title_frame, text="Word文档格式修复工具", font=('微软雅黑', 16, 'bold'), foreground='#0066cc')
         title_label.pack(side=tk.LEFT)
         
-        version_label = ttk.Label(title_frame, text="v1.0.0", font=('微软雅黑', 10, 'italic'), foreground='#666666')
+        version_label = ttk.Label(title_frame, text="v1.1.0", font=('微软雅黑', 10, 'italic'), foreground='#666666')
         version_label.pack(side=tk.RIGHT, padx=10)
         
         # 创建滚动窗口
