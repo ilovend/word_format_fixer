@@ -34,6 +34,11 @@ class WordFixerApp:
             self.style.theme_use('clam')
         
         # 自定义样式
+        # 为Frame添加样式，移除边框
+        self.style.configure('TFrame',
+                           borderwidth=0,
+                           relief='flat')
+        
         self.style.configure('TLabelFrame',
                            borderwidth=2,
                            relief='groove',
@@ -52,7 +57,19 @@ class WordFixerApp:
         
         self.style.configure('TEntry',
                            padding=4,
-                           font=('微软雅黑', 10))
+                           font=('微软雅黑', 10),
+                           borderwidth=1,
+                           relief='solid')
+        
+        # 为Combobox添加样式，移除焦点边框
+        self.style.configure('TCombobox',
+                           padding=4,
+                           font=('微软雅黑', 10),
+                           borderwidth=1,
+                           relief='solid')
+        
+        # 为Listbox添加样式，移除焦点边框
+        # 注意：Listbox是tk控件，需要单独设置
         
         # 变量
         self.input_file = tk.StringVar()
@@ -94,7 +111,7 @@ class WordFixerApp:
         title_label = ttk.Label(title_frame, text="Word文档格式修复工具", font=('微软雅黑', 16, 'bold'), foreground='#0066cc')
         title_label.pack(side=tk.LEFT)
         
-        version_label = ttk.Label(title_frame, text="v1.1.1", font=('微软雅黑', 10, 'italic'), foreground='#666666')
+        version_label = ttk.Label(title_frame, text="v1.1.2", font=('微软雅黑', 10, 'italic'), foreground='#666666')
         version_label.pack(side=tk.RIGHT, padx=10)
         
         # 创建滚动窗口
@@ -115,7 +132,7 @@ class WordFixerApp:
         self.scroll_frame.pack(fill=tk.BOTH, expand=True)
         
         # 创建画布和滚动条
-        self.canvas = tk.Canvas(self.scroll_frame, bg='#f0f0f0')
+        self.canvas = tk.Canvas(self.scroll_frame, bg='#f0f0f0', highlightthickness=0)
         self.scrollbar = ttk.Scrollbar(self.scroll_frame, orient="vertical", command=self.canvas.yview)
         
         # 创建内部框架
@@ -247,7 +264,10 @@ class WordFixerApp:
             batch_files_frame, 
             yscrollcommand=batch_scrollbar.set,
             font=('微软雅黑', 10),
-            height=6
+            height=6,
+            highlightthickness=0,
+            bd=1,
+            relief='solid'
         )
         self.batch_files_listbox.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
         batch_scrollbar.config(command=self.batch_files_listbox.yview)
@@ -368,7 +388,10 @@ class WordFixerApp:
             log_frame, 
             height=10, 
             wrap=tk.WORD, 
-            font=('微软雅黑', 10)
+            font=('微软雅黑', 10),
+            highlightthickness=0,
+            bd=1,
+            relief='solid'
         )
         self.log_scrollbar = ttk.Scrollbar(log_frame, command=self.log_text.yview)
         self.log_scrollbar.pack(side=tk.RIGHT, fill=tk.Y, pady=5, padx=(0,5))
