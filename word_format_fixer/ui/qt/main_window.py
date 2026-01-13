@@ -1,6 +1,6 @@
 """Word文档格式修复工具 - PyQt-Fluent-Widgets主窗口"""
 
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QTextEdit, QListWidget, QGroupBox, QLabel, QFileDialog, QDialog
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QTextEdit, QListWidget, QGroupBox, QLabel, QFileDialog, QDialog, QSplitter, QScrollArea
 from PyQt5.QtCore import Qt
 from qfluentwidgets import (
     FluentWindow, NavigationItemPosition, 
@@ -10,17 +10,99 @@ from qfluentwidgets import (
     setTheme, Theme
 )
 
+# 设计代币 - 统一的设计变量
+THEME = {
+    # 颜色
+    'primary': '#0066cc',
+    'primary_light': '#e6f3ff',
+    'primary_dark': '#0052a3',
+    'bg': '#ffffff',
+    'bg_secondary': '#f5f5f5',
+    'text': '#1f1f1f',
+    'text_secondary': '#666666',
+    'text_hint': '#999999',
+    'border': '#e0e0e0',
+    'success': '#00b359',
+    'warning': '#ff9900',
+    'error': '#ff3333',
+    
+    # 间距
+    'gap_small': 6,
+    'gap': 12,
+    'gap_large': 24,
+    
+    # 圆角
+    'radius_small': 4,
+    'radius': 8,
+    'radius_large': 12,
+    
+    # 字体
+    'font': "'Microsoft YaHei', 'SimHei', sans-serif",
+    'font_mono': "Consolas, 'Courier New', monospace",
+    
+    # 阴影
+    'shadow': '0 2px 8px rgba(0, 0, 0, 0.08)',
+    'shadow_focus': '0 0 0 3px rgba(0, 102, 204, 0.12)',
+}
+
 # 统一字体设置
 FONT_STYLES = {
-    "title": "font-size: 18px; font-weight: bold; color: #1F1F1F; font-family: 'Microsoft YaHei', 'SimHei', sans-serif;",
-    "subtitle": "font-size: 14px; font-weight: bold; color: #333333; font-family: 'Microsoft YaHei', 'SimHei', sans-serif;",
-    "label": "font-size: 13px; color: #333333; font-family: 'Microsoft YaHei', 'SimSun', sans-serif;",
-    "small_label": "font-size: 11px; color: #666666; font-family: 'Microsoft YaHei', 'SimSun', sans-serif;",
-    "hint": "font-size: 11px; color: #999999; font-family: 'Microsoft YaHei', 'SimSun', sans-serif;",
-    "button": "font-size: 13px; font-family: 'Microsoft YaHei', 'SimHei', sans-serif;",
-    "input": "font-size: 13px; font-family: 'Microsoft YaHei', 'SimSun', sans-serif;",
-    "log": "font-family: Consolas, 'Courier New', monospace; font-size: 11px; background-color: #F5F5F5;"
+    "title": f"font-size: 18px; font-weight: bold; color: {THEME['text']}; font-family: {THEME['font']};",
+    "subtitle": f"font-size: 14px; font-weight: bold; color: {THEME['text']}; font-family: {THEME['font']};",
+    "label": f"font-size: 13px; color: {THEME['text']}; font-family: {THEME['font']};",
+    "small_label": f"font-size: 11px; color: {THEME['text_secondary']}; font-family: {THEME['font']};",
+    "hint": f"font-size: 11px; color: {THEME['text_hint']}; font-family: {THEME['font']};",
+    "button": f"font-size: 13px; font-family: {THEME['font']};",
+    "input": f"font-size: 13px; font-family: {THEME['font']};",
+    "log": f"font-family: {THEME['font_mono']}; font-size: 11px; background-color: {THEME['bg_secondary']};",
 }
+
+# 全局QSS样式
+GLOBAL_QSS = f"""
+/* 基础控件样式 */
+QWidget {{
+    background: {THEME['bg']};
+    font-family: {THEME['font']};
+}}
+
+/* 输入控件样式 */
+QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox {{
+    border: none;
+    padding: 8px 12px;
+    border-radius: {THEME['radius']}px;
+    background: {THEME['bg']};
+    border: 1px solid {THEME['border']};
+}}
+
+QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus {{
+    border-color: {THEME['primary']};
+    box-shadow: {THEME['shadow_focus']};
+}}
+
+/* 列表控件样式 */
+QListWidget {{
+    border: none;
+    padding: 6px;
+    background: {THEME['bg']};
+}}
+
+/* 按钮样式 */
+QPushButton {{
+    font-family: {THEME['font']};
+    border-radius: {THEME['radius']}px;
+}}
+
+/* 复选框样式 */
+QCheckBox {{
+    font-family: {THEME['font']};
+}}
+"""
+
+# 应用全局QSS样式
+from PyQt5.QtWidgets import QApplication
+app = QApplication.instance()
+if app:
+    app.setStyleSheet(app.styleSheet() + GLOBAL_QSS)
 
 from ...core.fixer import RobustWordFixer
 from ...core.config import get_preset_config
@@ -40,20 +122,17 @@ class HomePage(QWidget):
         """设置UI"""
         # 主布局
         self.main_layout = QVBoxLayout(self)
-        self.main_layout.setSpacing(20)
-        self.main_layout.setContentsMargins(24, 24, 24, 24)
+        self.main_layout.setSpacing(THEME['gap'])
+        self.main_layout.setContentsMargins(THEME['gap_large'], THEME['gap_large'], THEME['gap_large'], THEME['gap_large'])
         
         # 标题区域
         self.setup_title_section()
         
-        # 内容区域
-        self.setup_content_section()
+        # 三栏可调布局区域
+        self.setup_splitter_layout()
         
-        # 操作按钮区域
-        self.setup_button_section()
-        
-        # 日志区域
-        self.setup_log_section()
+        # 底部固定操作栏
+        self.setup_bottom_action_bar()
         
         # 连接窗口显示事件，打印UI元素位置和大小
         self.showEvent = self.on_show_event
@@ -81,16 +160,14 @@ class HomePage(QWidget):
         """设置内容区域"""
         # 内容区域布局
         content_layout = QVBoxLayout()
+        content_layout.setSpacing(THEME['gap'])
         
         # 文件选择卡片
         file_card = CardWidget()
+        file_card.setStyleSheet(f"border-radius: {THEME['radius']}px; box-shadow: {THEME['shadow']};")
         file_layout = QVBoxLayout(file_card)
-        file_layout.setSpacing(12)
-        
-        # 添加调试信息，打印布局结构
-        print("=== UI布局结构 ===")
-        print("文件选择卡片:", file_card)
-        print("文件选择卡片布局:", file_layout)
+        file_layout.setSpacing(THEME['gap'])
+        file_layout.setContentsMargins(THEME['gap'], THEME['gap'], THEME['gap'], THEME['gap'])
         
         # 批量模式切换
         batch_layout = QHBoxLayout()
@@ -136,32 +213,8 @@ class HomePage(QWidget):
         # 文件列表
         self.file_list = QListWidget()
         self.file_list.setMinimumHeight(200)  # 增加最小高度，确保能显示更多文件
-        # 移除黑色框线
-        self.file_list.setStyleSheet("border: none; background-color: #FFFFFF;")
+        self.file_list.setStyleSheet(f"border: none; background-color: {THEME['bg']}; padding: {THEME['gap_small']}px;")
         
-        # 输出设置
-        output_layout = QHBoxLayout()
-        output_label = QLabel("输出路径:")
-        output_label.setStyleSheet(FONT_STYLES["label"])
-        output_layout.addWidget(output_label)
-        self.output_edit = LineEdit()
-        self.output_edit.setStyleSheet(FONT_STYLES["input"])
-        self.output_button = PushButton("浏览")
-        self.output_button.setStyleSheet(FONT_STYLES["button"])
-        self.output_button.clicked.connect(self.browse_output_file)
-        
-        output_layout.addWidget(self.output_edit, 1)
-        output_layout.addWidget(self.output_button)
-        
-        # 添加调试信息，打印布局顺序
-        print("=== 布局顺序 ===")
-        print("1. 批量模式切换:", batch_layout)
-        print("2. 单文件模式:", single_layout)
-        print("3. 批量选择按钮:", batch_select_layout)
-        print("4. 文件列表:", self.file_list)
-        print("5. 输出设置:", output_layout)
-        
-        # 重新组织布局结构，避免嵌套布局的复杂性
         # 直接在 file_layout 中添加所有元素
         file_layout.addLayout(batch_layout)
         file_layout.addLayout(single_layout)
@@ -170,8 +223,10 @@ class HomePage(QWidget):
         
         # 配置卡片
         config_card = CardWidget()
+        config_card.setStyleSheet(f"border-radius: {THEME['radius']}px;")
         config_layout = QVBoxLayout(config_card)
-        config_layout.setSpacing(12)
+        config_layout.setSpacing(THEME['gap'])
+        config_layout.setContentsMargins(THEME['gap'], THEME['gap'], THEME['gap'], THEME['gap'])
         
         # 预设配置
         preset_layout = QHBoxLayout()
@@ -190,8 +245,10 @@ class HomePage(QWidget):
         
         # 输出设置卡片
         output_card = CardWidget()
+        output_card.setStyleSheet(f"border-radius: {THEME['radius']}px; box-shadow: {THEME['shadow']};")
         output_card_layout = QVBoxLayout(output_card)
-        output_card_layout.setSpacing(12)
+        output_card_layout.setSpacing(THEME['gap'])
+        output_card_layout.setContentsMargins(THEME['gap'], THEME['gap'], THEME['gap'], THEME['gap'])
         
         # 输出设置
         output_layout = QHBoxLayout()
@@ -212,7 +269,6 @@ class HomePage(QWidget):
         # 添加到内容区域
         content_layout.addWidget(file_card)
         content_layout.addWidget(config_card)
-        # 将输出设置卡片添加到配置卡片的下方，这样它就会在文件列表的下方
         content_layout.addWidget(output_card)
         
         self.main_layout.addLayout(content_layout)
@@ -221,26 +277,35 @@ class HomePage(QWidget):
         """设置按钮区域"""
         # 按钮布局
         button_layout = QHBoxLayout()
+        button_layout.setSpacing(THEME['gap'])
         
-        # 开始修复按钮
+        # 开始修复按钮 - 主操作
         self.fix_button = PrimaryPushButton("开始修复")
         self.fix_button.setMinimumWidth(120)
-        self.fix_button.setStyleSheet(FONT_STYLES["button"])
+        self.fix_button.setStyleSheet(f"{FONT_STYLES['button']} background-color: {THEME['primary']}; color: white; border-radius: {THEME['radius']}px;")
+        self.fix_button.hovered.connect(lambda: self.fix_button.setStyleSheet(f"{FONT_STYLES['button']} background-color: {THEME['primary_dark']}; color: white; border-radius: {THEME['radius']}px;"))
+        self.fix_button.leaveEvent = lambda e: self.fix_button.setStyleSheet(f"{FONT_STYLES['button']} background-color: {THEME['primary']}; color: white; border-radius: {THEME['radius']}px;")
         self.fix_button.clicked.connect(self.fix_document)
         
-        # 重置按钮
+        # 重置按钮 - 次要操作
         self.reset_button = PushButton("重置")
-        self.reset_button.setStyleSheet(FONT_STYLES["button"])
+        self.reset_button.setStyleSheet(f"{FONT_STYLES['button']} background-color: {THEME['bg']}; color: {THEME['text']}; border: 1px solid {THEME['border']}; border-radius: {THEME['radius']}px;")
+        self.reset_button.hovered.connect(lambda: self.reset_button.setStyleSheet(f"{FONT_STYLES['button']} background-color: {THEME['bg_secondary']}; color: {THEME['text']}; border: 1px solid {THEME['border']}; border-radius: {THEME['radius']}px;"))
+        self.reset_button.leaveEvent = lambda e: self.reset_button.setStyleSheet(f"{FONT_STYLES['button']} background-color: {THEME['bg']}; color: {THEME['text']}; border: 1px solid {THEME['border']}; border-radius: {THEME['radius']}px;")
         self.reset_button.clicked.connect(self.reset_settings)
         
-        # 配置按钮
+        # 配置按钮 - 次要操作
         self.config_button = PushButton("配置")
-        self.config_button.setStyleSheet(FONT_STYLES["button"])
+        self.config_button.setStyleSheet(f"{FONT_STYLES['button']} background-color: {THEME['bg']}; color: {THEME['text']}; border: 1px solid {THEME['border']}; border-radius: {THEME['radius']}px;")
+        self.config_button.hovered.connect(lambda: self.config_button.setStyleSheet(f"{FONT_STYLES['button']} background-color: {THEME['bg_secondary']}; color: {THEME['text']}; border: 1px solid {THEME['border']}; border-radius: {THEME['radius']}px;"))
+        self.config_button.leaveEvent = lambda e: self.config_button.setStyleSheet(f"{FONT_STYLES['button']} background-color: {THEME['bg']}; color: {THEME['text']}; border: 1px solid {THEME['border']}; border-radius: {THEME['radius']}px;")
         self.config_button.clicked.connect(self.open_config_dialog)
         
-        # 退出按钮
+        # 退出按钮 - 次要操作
         self.exit_button = PushButton("退出")
-        self.exit_button.setStyleSheet(FONT_STYLES["button"])
+        self.exit_button.setStyleSheet(f"{FONT_STYLES['button']} background-color: {THEME['bg']}; color: {THEME['text']}; border: 1px solid {THEME['border']}; border-radius: {THEME['radius']}px;")
+        self.exit_button.hovered.connect(lambda: self.exit_button.setStyleSheet(f"{FONT_STYLES['button']} background-color: {THEME['bg_secondary']}; color: {THEME['text']}; border: 1px solid {THEME['border']}; border-radius: {THEME['radius']}px;"))
+        self.exit_button.leaveEvent = lambda e: self.exit_button.setStyleSheet(f"{FONT_STYLES['button']} background-color: {THEME['bg']}; color: {THEME['text']}; border: 1px solid {THEME['border']}; border-radius: {THEME['radius']}px;")
         self.exit_button.clicked.connect(QApplication.instance().quit)
         
         button_layout.addWidget(self.fix_button)
@@ -251,11 +316,160 @@ class HomePage(QWidget):
         
         self.main_layout.addLayout(button_layout)
     
-    def setup_log_section(self):
-        """设置日志区域"""
+    def setup_splitter_layout(self):
+        """设置三栏可调布局"""
+        # 创建水平分割器
+        splitter = QSplitter(Qt.Horizontal)
+        splitter.setStyleSheet(f"QSplitter::handle {{ background-color: {THEME['border']}; width: 2px; }}")
+        
+        # 左栏：文件选择与批量文件列表
+        left_widget = QWidget()
+        left_layout = QVBoxLayout(left_widget)
+        left_layout.setSpacing(THEME['gap'])
+        left_layout.setContentsMargins(0, 0, 0, 0)
+        
+        # 文件选择卡片
+        file_card = CardWidget()
+        file_card.setStyleSheet(f"border-radius: {THEME['radius']}px;")
+        file_layout = QVBoxLayout(file_card)
+        file_layout.setSpacing(THEME['gap'])
+        file_layout.setContentsMargins(THEME['gap'], THEME['gap'], THEME['gap'], THEME['gap'])
+        
+        # 批量模式切换
+        batch_layout = QHBoxLayout()
+        self.batch_mode = CheckBox("批量模式")
+        self.batch_mode.setStyleSheet(FONT_STYLES["label"])
+        batch_hint = QLabel("(支持选择多个文件或文件夹)")
+        batch_hint.setStyleSheet(FONT_STYLES["hint"])
+        
+        batch_layout.addWidget(self.batch_mode)
+        batch_layout.addWidget(batch_hint)
+        batch_layout.addStretch()
+        
+        # 单文件模式
+        single_layout = QHBoxLayout()
+        input_label = QLabel("输入文件:")
+        input_label.setStyleSheet(FONT_STYLES["label"])
+        single_layout.addWidget(input_label)
+        self.input_edit = LineEdit()
+        self.input_edit.setStyleSheet(FONT_STYLES["input"])
+        self.input_button = PushButton("浏览")
+        self.input_button.setStyleSheet(FONT_STYLES["button"])
+        self.input_button.clicked.connect(self.browse_input_file)
+        
+        single_layout.addWidget(self.input_edit, 1)
+        single_layout.addWidget(self.input_button)
+        
+        # 批量模式
+        batch_select_layout = QHBoxLayout()
+        batch_label = QLabel("批量选择:")
+        batch_label.setStyleSheet(FONT_STYLES["label"])
+        batch_select_layout.addWidget(batch_label)
+        self.batch_files_button = PushButton("选择多个文件")
+        self.batch_files_button.setStyleSheet(FONT_STYLES["button"])
+        self.batch_folder_button = PushButton("选择文件夹")
+        self.batch_folder_button.setStyleSheet(FONT_STYLES["button"])
+        
+        self.batch_files_button.clicked.connect(self.browse_batch_files)
+        self.batch_folder_button.clicked.connect(self.browse_batch_folder)
+        
+        batch_select_layout.addWidget(self.batch_files_button)
+        batch_select_layout.addWidget(self.batch_folder_button)
+        
+        # 文件列表
+        self.file_list = QListWidget()
+        self.file_list.setMinimumHeight(200)
+        self.file_list.setStyleSheet(f"border: none; background-color: {THEME['bg']}; padding: {THEME['gap_small']}px;")
+        
+        # 连接文件列表事件
+        self.file_list.itemDoubleClicked.connect(self.on_file_double_clicked)
+        self.file_list.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.file_list.customContextMenuRequested.connect(self.on_file_context_menu)
+        
+        # 连接输入编辑框事件
+        self.input_edit.textChanged.connect(self.update_button_state)
+        
+        # 添加到文件卡片
+        file_layout.addLayout(batch_layout)
+        file_layout.addLayout(single_layout)
+        file_layout.addLayout(batch_select_layout)
+        file_layout.addWidget(self.file_list)
+        
+        # 输出设置卡片
+        output_card = CardWidget()
+        output_card.setStyleSheet(f"border-radius: {THEME['radius']}px;")
+        output_card_layout = QVBoxLayout(output_card)
+        output_card_layout.setSpacing(THEME['gap'])
+        output_card_layout.setContentsMargins(THEME['gap'], THEME['gap'], THEME['gap'], THEME['gap'])
+        
+        # 输出设置
+        output_layout = QHBoxLayout()
+        output_label = QLabel("输出路径:")
+        output_label.setStyleSheet(FONT_STYLES["label"])
+        output_layout.addWidget(output_label)
+        self.output_edit = LineEdit()
+        self.output_edit.setStyleSheet(FONT_STYLES["input"])
+        self.output_button = PushButton("浏览")
+        self.output_button.setStyleSheet(FONT_STYLES["button"])
+        self.output_button.clicked.connect(self.browse_output_file)
+        
+        output_layout.addWidget(self.output_edit, 1)
+        output_layout.addWidget(self.output_button)
+        
+        output_card_layout.addLayout(output_layout)
+        
+        # 连接输出编辑框事件
+        self.output_edit.textChanged.connect(self.update_button_state)
+        
+        # 添加到左栏
+        left_layout.addWidget(file_card)
+        left_layout.addWidget(output_card)
+        left_layout.addStretch()
+        
+        # 中央：配置面板
+        center_widget = QWidget()
+        center_layout = QVBoxLayout(center_widget)
+        center_layout.setSpacing(THEME['gap'])
+        center_layout.setContentsMargins(0, 0, 0, 0)
+        
+        # 配置卡片
+        config_card = CardWidget()
+        config_card.setStyleSheet(f"border-radius: {THEME['radius']}px; box-shadow: {THEME['shadow']};")
+        config_layout = QVBoxLayout(config_card)
+        config_layout.setSpacing(THEME['gap'])
+        config_layout.setContentsMargins(THEME['gap'], THEME['gap'], THEME['gap'], THEME['gap'])
+        
+        # 预设配置
+        preset_layout = QHBoxLayout()
+        preset_label = QLabel("预设配置:")
+        preset_label.setStyleSheet(FONT_STYLES["label"])
+        preset_layout.addWidget(preset_label)
+        self.preset_combo = ComboBox()
+        self.preset_combo.setStyleSheet(FONT_STYLES["input"])
+        self.preset_combo.addItems(["默认", "标书专用", "紧凑", "打印就绪", "学术论文", "简历", "报告", "演示"])
+        
+        preset_layout.addWidget(self.preset_combo)
+        preset_layout.addStretch()
+        
+        # 添加到配置卡片
+        config_layout.addLayout(preset_layout)
+        
+        # 添加到中央布局
+        center_layout.addWidget(config_card)
+        center_layout.addStretch()
+        
+        # 右栏：日志区域
+        right_widget = QWidget()
+        right_layout = QVBoxLayout(right_widget)
+        right_layout.setSpacing(THEME['gap'])
+        right_layout.setContentsMargins(0, 0, 0, 0)
+        
         # 日志卡片
         log_card = CardWidget()
+        log_card.setStyleSheet(f"border-radius: {THEME['radius']}px;")
         log_layout = QVBoxLayout(log_card)
+        log_layout.setSpacing(THEME['gap'])
+        log_layout.setContentsMargins(THEME['gap'], THEME['gap'], THEME['gap'], THEME['gap'])
         
         # 日志标题
         log_title = QLabel("操作日志")
@@ -264,13 +478,85 @@ class HomePage(QWidget):
         # 日志文本框
         self.log_edit = QTextEdit()
         self.log_edit.setReadOnly(True)
-        self.log_edit.setStyleSheet(FONT_STYLES["log"])
-        self.log_edit.setMinimumHeight(120)
+        self.log_edit.setStyleSheet(f"{FONT_STYLES['log']} border-radius: {THEME['radius_small']}px; border: 1px solid {THEME['border']};")
+        self.log_edit.setMinimumHeight(300)
         
         log_layout.addWidget(log_title)
         log_layout.addWidget(self.log_edit)
         
-        self.main_layout.addWidget(log_card)
+        # 添加到右栏
+        right_layout.addWidget(log_card)
+        right_layout.addStretch()
+        
+        # 添加到分割器
+        splitter.addWidget(left_widget)
+        splitter.addWidget(center_widget)
+        splitter.addWidget(right_widget)
+        
+        # 设置初始大小
+        splitter.setSizes([320, 300, 320])
+        
+        # 设置最小宽度
+        left_widget.setMinimumWidth(280)
+        center_widget.setMinimumWidth(200)
+        right_widget.setMinimumWidth(280)
+        
+        # 添加到主布局
+        self.main_layout.addWidget(splitter)
+    
+    def setup_bottom_action_bar(self):
+        """设置底部固定操作栏"""
+        # 操作栏卡片
+        action_card = CardWidget()
+        action_card.setStyleSheet(f"border-radius: {THEME['radius']}px;")
+        action_layout = QHBoxLayout(action_card)
+        action_layout.setSpacing(THEME['gap'])
+        action_layout.setContentsMargins(THEME['gap'], THEME['gap'], THEME['gap'], THEME['gap'])
+        
+        # 提示文本
+        self.action_hint = QLabel("请选择要处理的文件")
+        self.action_hint.setStyleSheet(FONT_STYLES["small_label"])
+        
+        # 开始修复按钮 - 主操作
+        self.fix_button = PrimaryPushButton("开始修复")
+        self.fix_button.setMinimumWidth(120)
+        self.fix_button.setStyleSheet(f"{FONT_STYLES['button']} background-color: {THEME['primary']}; color: white; border-radius: {THEME['radius']}px;")
+        self.fix_button.enterEvent = lambda e: self.fix_button.setStyleSheet(f"{FONT_STYLES['button']} background-color: {THEME['primary_dark']}; color: white; border-radius: {THEME['radius']}px;")
+        self.fix_button.leaveEvent = lambda e: self.fix_button.setStyleSheet(f"{FONT_STYLES['button']} background-color: {THEME['primary']}; color: white; border-radius: {THEME['radius']}px;")
+        self.fix_button.clicked.connect(self.fix_document)
+        self.fix_button.setEnabled(False)  # 初始禁用
+        
+        # 重置按钮 - 次要操作
+        self.reset_button = PushButton("重置")
+        self.reset_button.setStyleSheet(f"{FONT_STYLES['button']} background-color: {THEME['bg']}; color: {THEME['text']}; border: 1px solid {THEME['border']}; border-radius: {THEME['radius']}px;")
+        self.reset_button.enterEvent = lambda e: self.reset_button.setStyleSheet(f"{FONT_STYLES['button']} background-color: {THEME['bg_secondary']}; color: {THEME['text']}; border: 1px solid {THEME['border']}; border-radius: {THEME['radius']}px;")
+        self.reset_button.leaveEvent = lambda e: self.reset_button.setStyleSheet(f"{FONT_STYLES['button']} background-color: {THEME['bg']}; color: {THEME['text']}; border: 1px solid {THEME['border']}; border-radius: {THEME['radius']}px;")
+        self.reset_button.clicked.connect(self.reset_settings)
+        
+        # 配置按钮 - 次要操作
+        self.config_button = PushButton("配置")
+        self.config_button.setStyleSheet(f"{FONT_STYLES['button']} background-color: {THEME['bg']}; color: {THEME['text']}; border: 1px solid {THEME['border']}; border-radius: {THEME['radius']}px;")
+        self.config_button.enterEvent = lambda e: self.config_button.setStyleSheet(f"{FONT_STYLES['button']} background-color: {THEME['bg_secondary']}; color: {THEME['text']}; border: 1px solid {THEME['border']}; border-radius: {THEME['radius']}px;")
+        self.config_button.leaveEvent = lambda e: self.config_button.setStyleSheet(f"{FONT_STYLES['button']} background-color: {THEME['bg']}; color: {THEME['text']}; border: 1px solid {THEME['border']}; border-radius: {THEME['radius']}px;")
+        self.config_button.clicked.connect(self.open_config_dialog)
+        
+        # 退出按钮 - 次要操作
+        self.exit_button = PushButton("退出")
+        self.exit_button.setStyleSheet(f"{FONT_STYLES['button']} background-color: {THEME['bg']}; color: {THEME['text']}; border: 1px solid {THEME['border']}; border-radius: {THEME['radius']}px;")
+        self.exit_button.enterEvent = lambda e: self.exit_button.setStyleSheet(f"{FONT_STYLES['button']} background-color: {THEME['bg_secondary']}; color: {THEME['text']}; border: 1px solid {THEME['border']}; border-radius: {THEME['radius']}px;")
+        self.exit_button.leaveEvent = lambda e: self.exit_button.setStyleSheet(f"{FONT_STYLES['button']} background-color: {THEME['bg']}; color: {THEME['text']}; border: 1px solid {THEME['border']}; border-radius: {THEME['radius']}px;")
+        self.exit_button.clicked.connect(QApplication.instance().quit)
+        
+        # 布局组织
+        action_layout.addWidget(self.action_hint)
+        action_layout.addStretch()
+        action_layout.addWidget(self.fix_button)
+        action_layout.addWidget(self.reset_button)
+        action_layout.addWidget(self.config_button)
+        action_layout.addWidget(self.exit_button)
+        
+        # 添加到主布局
+        self.main_layout.addWidget(action_card)
     
     def browse_input_file(self):
         """浏览输入文件"""
@@ -303,6 +589,7 @@ class HomePage(QWidget):
             self.file_list.clear()
             for file in files:
                 self.file_list.addItem(file)
+            self.update_button_state()
     
     def browse_batch_folder(self):
         """浏览文件夹"""
@@ -322,6 +609,7 @@ class HomePage(QWidget):
                 self.file_list.clear()
                 for file in docx_files:
                     self.file_list.addItem(file)
+                self.update_button_state()
     
     def fix_document(self):
         """开始修复文档"""
@@ -404,6 +692,78 @@ class HomePage(QWidget):
         self.batch_mode.setChecked(False)
         self.preset_combo.setCurrentIndex(0)
         self.log_edit.clear()
+        self.update_button_state()
+    
+    def update_button_state(self):
+        """根据文件选择状态更新按钮状态"""
+        batch_mode = self.batch_mode.isChecked()
+        
+        if batch_mode:
+            # 批量模式：检查文件列表是否有文件
+            has_files = self.file_list.count() > 0
+            has_output = bool(self.output_edit.text())
+            
+            if has_files:
+                self.fix_button.setEnabled(True)
+                self.action_hint.setText(f"已选择 {self.file_list.count()} 个文件")
+            else:
+                self.fix_button.setEnabled(False)
+                self.action_hint.setText("请选择要处理的文件")
+        else:
+            # 单文件模式：检查输入和输出文件
+            has_input = bool(self.input_edit.text())
+            has_output = bool(self.output_edit.text())
+            
+            if has_input and has_output:
+                self.fix_button.setEnabled(True)
+                self.action_hint.setText("就绪：点击开始修复")
+            else:
+                self.fix_button.setEnabled(False)
+                if not has_input:
+                    self.action_hint.setText("请选择输入文件")
+                elif not has_output:
+                    self.action_hint.setText("请选择输出文件")
+    
+    def on_file_double_clicked(self, item):
+        """处理文件双击事件"""
+        file_path = item.text()
+        self.log(f"查看文件详情: {file_path}")
+        # 这里可以添加文件详情预览功能
+    
+    def on_file_context_menu(self, pos):
+        """处理文件右键菜单"""
+        from PyQt5.QtWidgets import QMenu, QAction
+        
+        menu = QMenu(self.file_list)
+        
+        # 获取选中的项
+        selected_items = self.file_list.selectedItems()
+        
+        if selected_items:
+            # 移除选中项
+            remove_action = QAction("移除选中项", menu)
+            remove_action.triggered.connect(lambda: self.remove_selected_files())
+            menu.addAction(remove_action)
+            
+            # 在资源管理器中显示
+            show_action = QAction("在资源管理器中显示", menu)
+            show_action.triggered.connect(lambda: self.show_in_explorer(selected_items[0].text()))
+            menu.addAction(show_action)
+        else:
+            menu.addAction("请先选择文件")
+        
+        menu.exec_(self.file_list.mapToGlobal(pos))
+    
+    def remove_selected_files(self):
+        """移除选中的文件"""
+        for item in self.file_list.selectedItems():
+            self.file_list.takeItem(self.file_list.row(item))
+        self.update_button_state()
+    
+    def show_in_explorer(self, file_path):
+        """在资源管理器中显示文件"""
+        import os
+        os.startfile(os.path.dirname(file_path) if os.path.isfile(file_path) else file_path)
     
     def open_config_dialog(self):
         """打开配置对话框"""
