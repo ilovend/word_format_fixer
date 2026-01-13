@@ -54,6 +54,9 @@ class HomePage(QWidget):
         
         # 日志区域
         self.setup_log_section()
+        
+        # 连接窗口显示事件，打印UI元素位置和大小
+        self.showEvent = self.on_show_event
     
     def setup_title_section(self):
         """设置标题区域"""
@@ -84,6 +87,11 @@ class HomePage(QWidget):
         file_layout = QVBoxLayout(file_card)
         file_layout.setSpacing(12)
         
+        # 添加调试信息，打印布局结构
+        print("=== UI布局结构 ===")
+        print("文件选择卡片:", file_card)
+        print("文件选择卡片布局:", file_layout)
+        
         # 批量模式切换
         batch_layout = QHBoxLayout()
         self.batch_mode = CheckBox("批量模式")
@@ -110,7 +118,6 @@ class HomePage(QWidget):
         single_layout.addWidget(self.input_button)
         
         # 批量模式
-        batch_files_layout = QVBoxLayout()
         batch_select_layout = QHBoxLayout()
         batch_label = QLabel("批量选择:")
         batch_label.setStyleSheet(FONT_STYLES["label"])
@@ -128,12 +135,9 @@ class HomePage(QWidget):
         
         # 文件列表
         self.file_list = QListWidget()
-        self.file_list.setMinimumHeight(150)  # 增加最小高度，确保能显示更多文件
+        self.file_list.setMinimumHeight(200)  # 增加最小高度，确保能显示更多文件
         # 移除黑色框线
         self.file_list.setStyleSheet("border: none; background-color: #FFFFFF;")
-        
-        batch_files_layout.addLayout(batch_select_layout)
-        batch_files_layout.addWidget(self.file_list)
         
         # 输出设置
         output_layout = QHBoxLayout()
@@ -149,11 +153,20 @@ class HomePage(QWidget):
         output_layout.addWidget(self.output_edit, 1)
         output_layout.addWidget(self.output_button)
         
-        # 添加到文件卡片
+        # 添加调试信息，打印布局顺序
+        print("=== 布局顺序 ===")
+        print("1. 批量模式切换:", batch_layout)
+        print("2. 单文件模式:", single_layout)
+        print("3. 批量选择按钮:", batch_select_layout)
+        print("4. 文件列表:", self.file_list)
+        print("5. 输出设置:", output_layout)
+        
+        # 重新组织布局结构，避免嵌套布局的复杂性
+        # 直接在 file_layout 中添加所有元素
         file_layout.addLayout(batch_layout)
         file_layout.addLayout(single_layout)
-        file_layout.addLayout(batch_files_layout)
-        file_layout.addLayout(output_layout)
+        file_layout.addLayout(batch_select_layout)
+        file_layout.addWidget(self.file_list)
         
         # 配置卡片
         config_card = CardWidget()
@@ -175,9 +188,32 @@ class HomePage(QWidget):
         # 添加到配置卡片
         config_layout.addLayout(preset_layout)
         
+        # 输出设置卡片
+        output_card = CardWidget()
+        output_card_layout = QVBoxLayout(output_card)
+        output_card_layout.setSpacing(12)
+        
+        # 输出设置
+        output_layout = QHBoxLayout()
+        output_label = QLabel("输出路径:")
+        output_label.setStyleSheet(FONT_STYLES["label"])
+        output_layout.addWidget(output_label)
+        self.output_edit = LineEdit()
+        self.output_edit.setStyleSheet(FONT_STYLES["input"])
+        self.output_button = PushButton("浏览")
+        self.output_button.setStyleSheet(FONT_STYLES["button"])
+        self.output_button.clicked.connect(self.browse_output_file)
+        
+        output_layout.addWidget(self.output_edit, 1)
+        output_layout.addWidget(self.output_button)
+        
+        output_card_layout.addLayout(output_layout)
+        
         # 添加到内容区域
         content_layout.addWidget(file_card)
         content_layout.addWidget(config_card)
+        # 将输出设置卡片添加到配置卡片的下方，这样它就会在文件列表的下方
+        content_layout.addWidget(output_card)
         
         self.main_layout.addLayout(content_layout)
     
@@ -649,6 +685,130 @@ class HomePage(QWidget):
     def log(self, message):
         """记录日志"""
         self.log_edit.append(message)
+    
+    def on_show_event(self, event):
+        """窗口显示事件，打印UI元素位置和大小"""
+        print("\n=== UI元素位置和大小 ===")
+        # 打印文件列表信息
+        if hasattr(self, 'file_list'):
+            file_list_geo = self.file_list.geometry()
+            print(f"文件列表位置: ({file_list_geo.x()}, {file_list_geo.y()})")
+            print(f"文件列表大小: {file_list_geo.width()}x{file_list_geo.height()}")
+        
+        # 打印输出编辑框信息
+        if hasattr(self, 'output_edit'):
+            output_edit_geo = self.output_edit.geometry()
+            print(f"输出编辑框位置: ({output_edit_geo.x()}, {output_edit_geo.y()})")
+            print(f"输出编辑框大小: {output_edit_geo.width()}x{output_edit_geo.height()}")
+        
+        # 打印输出按钮信息
+        if hasattr(self, 'output_button'):
+            output_button_geo = self.output_button.geometry()
+            print(f"输出按钮位置: ({output_button_geo.x()}, {output_button_geo.y()})")
+            print(f"输出按钮大小: {output_button_geo.width()}x{output_button_geo.height()}")
+        
+        # 打印批量模式复选框信息
+        if hasattr(self, 'batch_mode'):
+            batch_mode_geo = self.batch_mode.geometry()
+            print(f"批量模式复选框位置: ({batch_mode_geo.x()}, {batch_mode_geo.y()})")
+            print(f"批量模式复选框大小: {batch_mode_geo.width()}x{batch_mode_geo.height()}")
+        
+        # 打印输入编辑框信息
+        if hasattr(self, 'input_edit'):
+            input_edit_geo = self.input_edit.geometry()
+            print(f"输入编辑框位置: ({input_edit_geo.x()}, {input_edit_geo.y()})")
+            print(f"输入编辑框大小: {input_edit_geo.width()}x{input_edit_geo.height()}")
+    
+    def mousePressEvent(self, event):
+        """鼠标点击事件，打印点击位置和点击的UI元素信息"""
+        # 获取点击位置
+        pos = event.pos()
+        print(f"\n=== 鼠标点击信息 ===")
+        print(f"点击位置: ({pos.x()}, {pos.y()})")
+        
+        # 检查点击是否在文件列表上
+        if hasattr(self, 'file_list'):
+            file_list_geo = self.file_list.geometry()
+            if file_list_geo.contains(pos):
+                print(f"点击了文件列表:")
+                print(f"  位置: ({file_list_geo.x()}, {file_list_geo.y()})")
+                print(f"  大小: {file_list_geo.width()}x{file_list_geo.height()}")
+                return
+        
+        # 检查点击是否在输出编辑框上
+        if hasattr(self, 'output_edit'):
+            output_edit_geo = self.output_edit.geometry()
+            if output_edit_geo.contains(pos):
+                print(f"点击了输出编辑框:")
+                print(f"  位置: ({output_edit_geo.x()}, {output_edit_geo.y()})")
+                print(f"  大小: {output_edit_geo.width()}x{output_edit_geo.height()}")
+                return
+        
+        # 检查点击是否在输出按钮上
+        if hasattr(self, 'output_button'):
+            output_button_geo = self.output_button.geometry()
+            if output_button_geo.contains(pos):
+                print(f"点击了输出按钮:")
+                print(f"  位置: ({output_button_geo.x()}, {output_button_geo.y()})")
+                print(f"  大小: {output_button_geo.width()}x{output_button_geo.height()}")
+                return
+        
+        # 检查点击是否在批量模式复选框上
+        if hasattr(self, 'batch_mode'):
+            batch_mode_geo = self.batch_mode.geometry()
+            if batch_mode_geo.contains(pos):
+                print(f"点击了批量模式复选框:")
+                print(f"  位置: ({batch_mode_geo.x()}, {batch_mode_geo.y()})")
+                print(f"  大小: {batch_mode_geo.width()}x{batch_mode_geo.height()}")
+                return
+        
+        # 检查点击是否在输入编辑框上
+        if hasattr(self, 'input_edit'):
+            input_edit_geo = self.input_edit.geometry()
+            if input_edit_geo.contains(pos):
+                print(f"点击了输入编辑框:")
+                print(f"  位置: ({input_edit_geo.x()}, {input_edit_geo.y()})")
+                print(f"  大小: {input_edit_geo.width()}x{input_edit_geo.height()}")
+                return
+        
+        # 检查点击是否在输入按钮上
+        if hasattr(self, 'input_button'):
+            input_button_geo = self.input_button.geometry()
+            if input_button_geo.contains(pos):
+                print(f"点击了输入按钮:")
+                print(f"  位置: ({input_button_geo.x()}, {input_button_geo.y()})")
+                print(f"  大小: {input_button_geo.width()}x{input_button_geo.height()}")
+                return
+        
+        # 检查点击是否在批量文件按钮上
+        if hasattr(self, 'batch_files_button'):
+            batch_files_button_geo = self.batch_files_button.geometry()
+            if batch_files_button_geo.contains(pos):
+                print(f"点击了批量文件按钮:")
+                print(f"  位置: ({batch_files_button_geo.x()}, {batch_files_button_geo.y()})")
+                print(f"  大小: {batch_files_button_geo.width()}x{batch_files_button_geo.height()}")
+                return
+        
+        # 检查点击是否在批量文件夹按钮上
+        if hasattr(self, 'batch_folder_button'):
+            batch_folder_button_geo = self.batch_folder_button.geometry()
+            if batch_folder_button_geo.contains(pos):
+                print(f"点击了批量文件夹按钮:")
+                print(f"  位置: ({batch_folder_button_geo.x()}, {batch_folder_button_geo.y()})")
+                print(f"  大小: {batch_folder_button_geo.width()}x{batch_folder_button_geo.height()}")
+                return
+        
+        # 检查点击是否在预设组合框上
+        if hasattr(self, 'preset_combo'):
+            preset_combo_geo = self.preset_combo.geometry()
+            if preset_combo_geo.contains(pos):
+                print(f"点击了预设组合框:")
+                print(f"  位置: ({preset_combo_geo.x()}, {preset_combo_geo.y()})")
+                print(f"  大小: {preset_combo_geo.width()}x{preset_combo_geo.height()}")
+                return
+        
+        # 如果没有点击任何UI元素，打印点击位置
+        print("未点击任何UI元素")
 
 
 class WordFixerWindow(FluentWindow):
