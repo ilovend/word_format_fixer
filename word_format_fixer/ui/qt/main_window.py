@@ -1,6 +1,6 @@
 """Word文档格式修复工具 - PyQt-Fluent-Widgets主窗口"""
 
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QTextEdit, QListWidget, QGroupBox, QLabel, QFileDialog
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QTextEdit, QListWidget, QGroupBox, QLabel, QFileDialog, QDialog
 from PyQt5.QtCore import Qt
 from qfluentwidgets import (
     FluentWindow, NavigationItemPosition, 
@@ -167,6 +167,7 @@ class HomePage(QWidget):
         
         # 配置按钮
         self.config_button = PushButton("配置")
+        self.config_button.clicked.connect(self.open_config_dialog)
         
         # 退出按钮
         self.exit_button = PushButton("退出")
@@ -333,6 +334,239 @@ class HomePage(QWidget):
         self.batch_mode.setChecked(False)
         self.preset_combo.setCurrentIndex(0)
         self.log_edit.clear()
+    
+    def open_config_dialog(self):
+        """打开配置对话框"""
+        from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QGridLayout
+        from qfluentwidgets import CardWidget, LineEdit, ComboBox, SpinBox, DoubleSpinBox, CheckBox
+        
+        # 创建配置对话框
+        dialog = QDialog(self)
+        dialog.setWindowTitle("配置选项")
+        dialog.resize(600, 400)
+        
+        # 主布局
+        main_layout = QVBoxLayout(dialog)
+        
+        # 字体设置卡片
+        font_card = CardWidget()
+        font_layout = QGridLayout(font_card)
+        
+        # 中文字体
+        font_layout.addWidget(QLabel("中文字体:"), 0, 0)
+        self.chinese_font_edit = LineEdit()
+        self.chinese_font_edit.setText("宋体")
+        font_layout.addWidget(self.chinese_font_edit, 0, 1)
+        
+        # 西文字体
+        font_layout.addWidget(QLabel("西文字体:"), 0, 2)
+        self.western_font_edit = LineEdit()
+        self.western_font_edit.setText("Arial")
+        font_layout.addWidget(self.western_font_edit, 0, 3)
+        
+        # 标题字体
+        font_layout.addWidget(QLabel("标题字体:"), 1, 0)
+        self.title_font_edit = LineEdit()
+        self.title_font_edit.setText("黑体")
+        font_layout.addWidget(self.title_font_edit, 1, 1)
+        
+        # 字号设置卡片
+        size_card = CardWidget()
+        size_layout = QGridLayout(size_card)
+        
+        # 正文字号
+        size_layout.addWidget(QLabel("正文字号:"), 0, 0)
+        self.body_size_spin = SpinBox()
+        self.body_size_spin.setRange(8, 24)
+        self.body_size_spin.setValue(12)
+        size_layout.addWidget(self.body_size_spin, 0, 1)
+        
+        # 一级标题字号
+        size_layout.addWidget(QLabel("一级标题:"), 0, 2)
+        self.title1_size_spin = SpinBox()
+        self.title1_size_spin.setRange(16, 32)
+        self.title1_size_spin.setValue(22)
+        size_layout.addWidget(self.title1_size_spin, 0, 3)
+        
+        # 二级标题字号
+        size_layout.addWidget(QLabel("二级标题:"), 1, 0)
+        self.title2_size_spin = SpinBox()
+        self.title2_size_spin.setRange(14, 28)
+        self.title2_size_spin.setValue(18)
+        size_layout.addWidget(self.title2_size_spin, 1, 1)
+        
+        # 三级标题字号
+        size_layout.addWidget(QLabel("三级标题:"), 1, 2)
+        self.title3_size_spin = SpinBox()
+        self.title3_size_spin.setRange(12, 24)
+        self.title3_size_spin.setValue(16)
+        size_layout.addWidget(self.title3_size_spin, 1, 3)
+        
+        # 页面设置卡片
+        page_card = CardWidget()
+        page_layout = QGridLayout(page_card)
+        
+        # 上边距
+        page_layout.addWidget(QLabel("上边距 (cm):"), 0, 0)
+        self.margin_top_spin = DoubleSpinBox()
+        self.margin_top_spin.setRange(0.5, 5.0)
+        self.margin_top_spin.setSingleStep(0.1)
+        self.margin_top_spin.setValue(2.54)
+        page_layout.addWidget(self.margin_top_spin, 0, 1)
+        
+        # 下边距
+        page_layout.addWidget(QLabel("下边距 (cm):"), 0, 2)
+        self.margin_bottom_spin = DoubleSpinBox()
+        self.margin_bottom_spin.setRange(0.5, 5.0)
+        self.margin_bottom_spin.setSingleStep(0.1)
+        self.margin_bottom_spin.setValue(2.54)
+        page_layout.addWidget(self.margin_bottom_spin, 0, 3)
+        
+        # 左边距
+        page_layout.addWidget(QLabel("左边距 (cm):"), 1, 0)
+        self.margin_left_spin = DoubleSpinBox()
+        self.margin_left_spin.setRange(0.5, 5.0)
+        self.margin_left_spin.setSingleStep(0.1)
+        self.margin_left_spin.setValue(2.54)
+        page_layout.addWidget(self.margin_left_spin, 1, 1)
+        
+        # 右边距
+        page_layout.addWidget(QLabel("右边距 (cm):"), 1, 2)
+        self.margin_right_spin = DoubleSpinBox()
+        self.margin_right_spin.setRange(0.5, 5.0)
+        self.margin_right_spin.setSingleStep(0.1)
+        self.margin_right_spin.setValue(2.54)
+        page_layout.addWidget(self.margin_right_spin, 1, 3)
+        
+        # 表格设置卡片
+        table_card = CardWidget()
+        table_layout = QGridLayout(table_card)
+        
+        # 表格宽度百分比
+        table_layout.addWidget(QLabel("表格宽度 (%):"), 0, 0)
+        self.table_width_spin = SpinBox()
+        self.table_width_spin.setRange(50, 100)
+        self.table_width_spin.setValue(95)
+        table_layout.addWidget(self.table_width_spin, 0, 1)
+        
+        # 自动调整列宽
+        table_layout.addWidget(QLabel("自动调整列宽:"), 0, 2)
+        self.auto_adjust_check = CheckBox()
+        self.auto_adjust_check.setChecked(True)
+        table_layout.addWidget(self.auto_adjust_check, 0, 3)
+        
+        # 预设管理卡片
+        preset_card = CardWidget()
+        preset_layout = QVBoxLayout(preset_card)
+        
+        # 预设管理标题
+        preset_title = QLabel("预设管理")
+        preset_title.setStyleSheet("font-size: 12px; font-weight: bold; color: #333333;")
+        preset_layout.addWidget(preset_title)
+        
+        # 预设选择
+        preset_select_layout = QHBoxLayout()
+        preset_select_layout.addWidget(QLabel("选择预设:"))
+        self.preset_manage_combo = ComboBox()
+        preset_names = ["默认", "标书专用", "紧凑", "打印就绪", "学术论文", "简历", "报告", "演示"]
+        self.preset_manage_combo.addItems(preset_names)
+        self.preset_manage_combo.currentIndexChanged.connect(self.on_preset_manage_change)
+        preset_select_layout.addWidget(self.preset_manage_combo)
+        preset_layout.addLayout(preset_select_layout)
+        
+        # 预设描述
+        self.preset_desc_label = QLabel("选择一个预设进行编辑")
+        self.preset_desc_label.setStyleSheet("font-size: 11px; color: #666666;")
+        preset_layout.addWidget(self.preset_desc_label)
+        
+        # 按钮布局
+        button_layout = QHBoxLayout()
+        self.save_button = PushButton("保存")
+        self.save_button.clicked.connect(lambda: self.save_config(dialog))
+        self.cancel_button = PushButton("取消")
+        self.cancel_button.clicked.connect(dialog.reject)
+        
+        button_layout.addStretch()
+        button_layout.addWidget(self.save_button)
+        button_layout.addWidget(self.cancel_button)
+        
+        # 添加到主布局
+        main_layout.addWidget(font_card)
+        main_layout.addWidget(size_card)
+        main_layout.addWidget(page_card)
+        main_layout.addWidget(table_card)
+        main_layout.addWidget(preset_card)
+        main_layout.addLayout(button_layout)
+        
+        # 显示对话框
+        dialog.exec_()
+    
+    def on_preset_manage_change(self, index):
+        """处理预设管理选择变化"""
+        from ...core.config import get_preset_config
+        
+        # 预设名称映射
+        preset_map = {
+            0: "default",
+            1: "bid_document",
+            2: "compact",
+            3: "print_ready",
+            4: "academic_paper",
+            5: "resume",
+            6: "report",
+            7: "presentation"
+        }
+        
+        # 获取选中的预设
+        preset_key = preset_map.get(index, "default")
+        config = get_preset_config(preset_key)
+        
+        # 更新配置值
+        if 'chinese_font' in config:
+            self.chinese_font_edit.setText(config['chinese_font'])
+        if 'western_font' in config:
+            self.western_font_edit.setText(config['western_font'])
+        if 'title_font' in config:
+            self.title_font_edit.setText(config['title_font'])
+        if 'font_size_body' in config:
+            self.body_size_spin.setValue(config['font_size_body'])
+        if 'font_size_title1' in config:
+            self.title1_size_spin.setValue(config['font_size_title1'])
+        if 'font_size_title2' in config:
+            self.title2_size_spin.setValue(config['font_size_title2'])
+        if 'font_size_title3' in config:
+            self.title3_size_spin.setValue(config['font_size_title3'])
+        if 'page_margin_top_cm' in config:
+            self.margin_top_spin.setValue(config['page_margin_top_cm'])
+        if 'page_margin_bottom_cm' in config:
+            self.margin_bottom_spin.setValue(config['page_margin_bottom_cm'])
+        if 'page_margin_left_cm' in config:
+            self.margin_left_spin.setValue(config['page_margin_left_cm'])
+        if 'page_margin_right_cm' in config:
+            self.margin_right_spin.setValue(config['page_margin_right_cm'])
+        if 'table_width_percent' in config:
+            self.table_width_spin.setValue(config['table_width_percent'])
+        
+        # 更新预设描述
+        preset_descriptions = {
+            0: "默认配置，适合大多数文档",
+            1: "标书专用配置，格式更加规范",
+            2: "紧凑配置，节省空间",
+            3: "打印就绪配置，优化打印效果",
+            4: "学术论文配置，符合学术规范",
+            5: "简历配置，简洁专业",
+            6: "报告配置，结构清晰",
+            7: "演示配置，突出重点"
+        }
+        
+        self.preset_desc_label.setText(preset_descriptions.get(index, "选择一个预设进行编辑"))
+    
+    def save_config(self, dialog):
+        """保存配置"""
+        # 这里可以添加保存配置的逻辑
+        # 目前只是关闭对话框
+        dialog.accept()
+        self.log("配置已保存")
     
     def log(self, message):
         """记录日志"""

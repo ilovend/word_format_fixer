@@ -165,6 +165,57 @@ class TestHomePage(unittest.TestCase):
         self.assertEqual(self.page.preset_combo.currentIndex(), 0)
         self.assertEqual(self.page.file_list.count(), 0)
     
+    def test_config_button_connection(self):
+        """测试配置按钮的点击事件连接"""
+        # 验证配置按钮存在
+        self.assertIsNotNone(self.page.config_button)
+        # 验证配置按钮文本
+        self.assertEqual(self.page.config_button.text(), "配置")
+    
+    def test_open_config_dialog(self):
+        """测试打开配置对话框功能"""
+        # 模拟模块级别的QDialog和方法内部导入的其他组件
+        with patch('word_format_fixer.ui.qt.main_window.QDialog') as mock_dialog, \
+             patch('PyQt5.QtWidgets.QVBoxLayout') as mock_vbox, \
+             patch('PyQt5.QtWidgets.QHBoxLayout') as mock_hbox, \
+             patch('PyQt5.QtWidgets.QGridLayout') as mock_grid, \
+             patch('PyQt5.QtWidgets.QPushButton') as mock_button, \
+             patch('qfluentwidgets.CardWidget') as mock_card, \
+             patch('qfluentwidgets.LineEdit') as mock_line, \
+             patch('qfluentwidgets.ComboBox') as mock_combo, \
+             patch('qfluentwidgets.SpinBox') as mock_spin, \
+             patch('qfluentwidgets.DoubleSpinBox') as mock_double, \
+             patch('qfluentwidgets.CheckBox') as mock_check:
+            
+            # 模拟对话框
+            mock_instance = Mock()
+            mock_dialog.return_value = mock_instance
+            
+            # 模拟布局
+            mock_layout_instance = Mock()
+            mock_vbox.return_value = mock_layout_instance
+            mock_hbox.return_value = mock_layout_instance
+            mock_grid.return_value = mock_layout_instance
+            
+            # 执行打开配置对话框方法
+            self.page.open_config_dialog()
+            
+            # 验证对话框被创建
+            mock_dialog.assert_called_once()
+            # 验证对话框的exec_方法被调用
+            mock_instance.exec_.assert_called_once()
+    
+    def test_save_config(self):
+        """测试保存配置功能"""
+        # 模拟对话框
+        mock_dialog = Mock()
+        
+        # 执行保存配置方法
+        self.page.save_config(mock_dialog)
+        
+        # 验证对话框的accept方法被调用
+        mock_dialog.accept.assert_called_once()
+    
     @patch('word_format_fixer.ui.qt.main_window.RobustWordFixer')
     def test_fix_document_single_file(self, mock_fixer):
         """测试单文件模式下的修复文档功能"""
