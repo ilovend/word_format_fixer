@@ -128,7 +128,9 @@ class HomePage(QWidget):
         
         # 文件列表
         self.file_list = QListWidget()
-        self.file_list.setMinimumHeight(120)
+        self.file_list.setMinimumHeight(150)  # 增加最小高度，确保能显示更多文件
+        # 移除黑色框线
+        self.file_list.setStyleSheet("border: none; background-color: #FFFFFF;")
         
         batch_files_layout.addLayout(batch_select_layout)
         batch_files_layout.addWidget(self.file_list)
