@@ -10,6 +10,18 @@ from qfluentwidgets import (
     setTheme, Theme
 )
 
+# 统一字体设置
+FONT_STYLES = {
+    "title": "font-size: 18px; font-weight: bold; color: #1F1F1F; font-family: 'Microsoft YaHei', 'SimHei', sans-serif;",
+    "subtitle": "font-size: 14px; font-weight: bold; color: #333333; font-family: 'Microsoft YaHei', 'SimHei', sans-serif;",
+    "label": "font-size: 13px; color: #333333; font-family: 'Microsoft YaHei', 'SimSun', sans-serif;",
+    "small_label": "font-size: 11px; color: #666666; font-family: 'Microsoft YaHei', 'SimSun', sans-serif;",
+    "hint": "font-size: 11px; color: #999999; font-family: 'Microsoft YaHei', 'SimSun', sans-serif;",
+    "button": "font-size: 13px; font-family: 'Microsoft YaHei', 'SimHei', sans-serif;",
+    "input": "font-size: 13px; font-family: 'Microsoft YaHei', 'SimSun', sans-serif;",
+    "log": "font-family: Consolas, 'Courier New', monospace; font-size: 11px; background-color: #F5F5F5;"
+}
+
 from ...core.fixer import RobustWordFixer
 from ...core.config import get_preset_config
 import os
@@ -50,11 +62,11 @@ class HomePage(QWidget):
         
         # 应用标题
         title_label = QLabel("Word文档格式修复工具")
-        title_label.setStyleSheet("font-size: 18px; font-weight: bold; color: #1F1F1F;")
+        title_label.setStyleSheet(FONT_STYLES["title"])
         
         # 版本信息
         version_label = QLabel("v1.1.2")
-        version_label.setStyleSheet("font-size: 12px; color: #666666;")
+        version_label.setStyleSheet(FONT_STYLES["small_label"])
         
         title_layout.addWidget(title_label)
         title_layout.addStretch()
@@ -75,8 +87,9 @@ class HomePage(QWidget):
         # 批量模式切换
         batch_layout = QHBoxLayout()
         self.batch_mode = CheckBox("批量模式")
+        self.batch_mode.setStyleSheet(FONT_STYLES["label"])
         batch_hint = QLabel("(支持选择多个文件或文件夹)")
-        batch_hint.setStyleSheet("font-size: 11px; color: #999999;")
+        batch_hint.setStyleSheet(FONT_STYLES["hint"])
         
         batch_layout.addWidget(self.batch_mode)
         batch_layout.addWidget(batch_hint)
@@ -84,9 +97,13 @@ class HomePage(QWidget):
         
         # 单文件模式
         single_layout = QHBoxLayout()
-        single_layout.addWidget(QLabel("输入文件:"))
+        input_label = QLabel("输入文件:")
+        input_label.setStyleSheet(FONT_STYLES["label"])
+        single_layout.addWidget(input_label)
         self.input_edit = LineEdit()
+        self.input_edit.setStyleSheet(FONT_STYLES["input"])
         self.input_button = PushButton("浏览")
+        self.input_button.setStyleSheet(FONT_STYLES["button"])
         self.input_button.clicked.connect(self.browse_input_file)
         
         single_layout.addWidget(self.input_edit, 1)
@@ -95,9 +112,13 @@ class HomePage(QWidget):
         # 批量模式
         batch_files_layout = QVBoxLayout()
         batch_select_layout = QHBoxLayout()
-        batch_select_layout.addWidget(QLabel("批量选择:"))
+        batch_label = QLabel("批量选择:")
+        batch_label.setStyleSheet(FONT_STYLES["label"])
+        batch_select_layout.addWidget(batch_label)
         self.batch_files_button = PushButton("选择多个文件")
+        self.batch_files_button.setStyleSheet(FONT_STYLES["button"])
         self.batch_folder_button = PushButton("选择文件夹")
+        self.batch_folder_button.setStyleSheet(FONT_STYLES["button"])
         
         self.batch_files_button.clicked.connect(self.browse_batch_files)
         self.batch_folder_button.clicked.connect(self.browse_batch_folder)
@@ -114,9 +135,13 @@ class HomePage(QWidget):
         
         # 输出设置
         output_layout = QHBoxLayout()
-        output_layout.addWidget(QLabel("输出路径:"))
+        output_label = QLabel("输出路径:")
+        output_label.setStyleSheet(FONT_STYLES["label"])
+        output_layout.addWidget(output_label)
         self.output_edit = LineEdit()
+        self.output_edit.setStyleSheet(FONT_STYLES["input"])
         self.output_button = PushButton("浏览")
+        self.output_button.setStyleSheet(FONT_STYLES["button"])
         self.output_button.clicked.connect(self.browse_output_file)
         
         output_layout.addWidget(self.output_edit, 1)
@@ -135,8 +160,11 @@ class HomePage(QWidget):
         
         # 预设配置
         preset_layout = QHBoxLayout()
-        preset_layout.addWidget(QLabel("预设配置:"))
+        preset_label = QLabel("预设配置:")
+        preset_label.setStyleSheet(FONT_STYLES["label"])
+        preset_layout.addWidget(preset_label)
         self.preset_combo = ComboBox()
+        self.preset_combo.setStyleSheet(FONT_STYLES["input"])
         self.preset_combo.addItems(["默认", "标书专用", "紧凑", "打印就绪", "学术论文", "简历", "报告", "演示"])
         
         preset_layout.addWidget(self.preset_combo)
@@ -159,18 +187,22 @@ class HomePage(QWidget):
         # 开始修复按钮
         self.fix_button = PrimaryPushButton("开始修复")
         self.fix_button.setMinimumWidth(120)
+        self.fix_button.setStyleSheet(FONT_STYLES["button"])
         self.fix_button.clicked.connect(self.fix_document)
         
         # 重置按钮
         self.reset_button = PushButton("重置")
+        self.reset_button.setStyleSheet(FONT_STYLES["button"])
         self.reset_button.clicked.connect(self.reset_settings)
         
         # 配置按钮
         self.config_button = PushButton("配置")
+        self.config_button.setStyleSheet(FONT_STYLES["button"])
         self.config_button.clicked.connect(self.open_config_dialog)
         
         # 退出按钮
         self.exit_button = PushButton("退出")
+        self.exit_button.setStyleSheet(FONT_STYLES["button"])
         self.exit_button.clicked.connect(QApplication.instance().quit)
         
         button_layout.addWidget(self.fix_button)
@@ -189,12 +221,12 @@ class HomePage(QWidget):
         
         # 日志标题
         log_title = QLabel("操作日志")
-        log_title.setStyleSheet("font-size: 12px; font-weight: bold; color: #333333;")
+        log_title.setStyleSheet(FONT_STYLES["subtitle"])
         
         # 日志文本框
         self.log_edit = QTextEdit()
         self.log_edit.setReadOnly(True)
-        self.log_edit.setStyleSheet("font-family: Consolas; font-size: 11px; background-color: #F5F5F5;")
+        self.log_edit.setStyleSheet(FONT_STYLES["log"])
         self.log_edit.setMinimumHeight(120)
         
         log_layout.addWidget(log_title)
@@ -353,20 +385,29 @@ class HomePage(QWidget):
         font_layout = QGridLayout(font_card)
         
         # 中文字体
-        font_layout.addWidget(QLabel("中文字体:"), 0, 0)
+        chinese_font_label = QLabel("中文字体:")
+        chinese_font_label.setStyleSheet(FONT_STYLES["label"])
+        font_layout.addWidget(chinese_font_label, 0, 0)
         self.chinese_font_edit = LineEdit()
+        self.chinese_font_edit.setStyleSheet(FONT_STYLES["input"])
         self.chinese_font_edit.setText("宋体")
         font_layout.addWidget(self.chinese_font_edit, 0, 1)
         
         # 西文字体
-        font_layout.addWidget(QLabel("西文字体:"), 0, 2)
+        western_font_label = QLabel("西文字体:")
+        western_font_label.setStyleSheet(FONT_STYLES["label"])
+        font_layout.addWidget(western_font_label, 0, 2)
         self.western_font_edit = LineEdit()
+        self.western_font_edit.setStyleSheet(FONT_STYLES["input"])
         self.western_font_edit.setText("Arial")
         font_layout.addWidget(self.western_font_edit, 0, 3)
         
         # 标题字体
-        font_layout.addWidget(QLabel("标题字体:"), 1, 0)
+        title_font_label = QLabel("标题字体:")
+        title_font_label.setStyleSheet(FONT_STYLES["label"])
+        font_layout.addWidget(title_font_label, 1, 0)
         self.title_font_edit = LineEdit()
+        self.title_font_edit.setStyleSheet(FONT_STYLES["input"])
         self.title_font_edit.setText("黑体")
         font_layout.addWidget(self.title_font_edit, 1, 1)
         
@@ -375,29 +416,41 @@ class HomePage(QWidget):
         size_layout = QGridLayout(size_card)
         
         # 正文字号
-        size_layout.addWidget(QLabel("正文字号:"), 0, 0)
+        body_size_label = QLabel("正文字号:")
+        body_size_label.setStyleSheet(FONT_STYLES["label"])
+        size_layout.addWidget(body_size_label, 0, 0)
         self.body_size_spin = SpinBox()
+        self.body_size_spin.setStyleSheet(FONT_STYLES["input"])
         self.body_size_spin.setRange(8, 24)
         self.body_size_spin.setValue(12)
         size_layout.addWidget(self.body_size_spin, 0, 1)
         
         # 一级标题字号
-        size_layout.addWidget(QLabel("一级标题:"), 0, 2)
+        title1_size_label = QLabel("一级标题:")
+        title1_size_label.setStyleSheet(FONT_STYLES["label"])
+        size_layout.addWidget(title1_size_label, 0, 2)
         self.title1_size_spin = SpinBox()
+        self.title1_size_spin.setStyleSheet(FONT_STYLES["input"])
         self.title1_size_spin.setRange(16, 32)
         self.title1_size_spin.setValue(22)
         size_layout.addWidget(self.title1_size_spin, 0, 3)
         
         # 二级标题字号
-        size_layout.addWidget(QLabel("二级标题:"), 1, 0)
+        title2_size_label = QLabel("二级标题:")
+        title2_size_label.setStyleSheet(FONT_STYLES["label"])
+        size_layout.addWidget(title2_size_label, 1, 0)
         self.title2_size_spin = SpinBox()
+        self.title2_size_spin.setStyleSheet(FONT_STYLES["input"])
         self.title2_size_spin.setRange(14, 28)
         self.title2_size_spin.setValue(18)
         size_layout.addWidget(self.title2_size_spin, 1, 1)
         
         # 三级标题字号
-        size_layout.addWidget(QLabel("三级标题:"), 1, 2)
+        title3_size_label = QLabel("三级标题:")
+        title3_size_label.setStyleSheet(FONT_STYLES["label"])
+        size_layout.addWidget(title3_size_label, 1, 2)
         self.title3_size_spin = SpinBox()
+        self.title3_size_spin.setStyleSheet(FONT_STYLES["input"])
         self.title3_size_spin.setRange(12, 24)
         self.title3_size_spin.setValue(16)
         size_layout.addWidget(self.title3_size_spin, 1, 3)
@@ -407,32 +460,44 @@ class HomePage(QWidget):
         page_layout = QGridLayout(page_card)
         
         # 上边距
-        page_layout.addWidget(QLabel("上边距 (cm):"), 0, 0)
+        margin_top_label = QLabel("上边距 (cm):")
+        margin_top_label.setStyleSheet(FONT_STYLES["label"])
+        page_layout.addWidget(margin_top_label, 0, 0)
         self.margin_top_spin = DoubleSpinBox()
+        self.margin_top_spin.setStyleSheet(FONT_STYLES["input"])
         self.margin_top_spin.setRange(0.5, 5.0)
         self.margin_top_spin.setSingleStep(0.1)
         self.margin_top_spin.setValue(2.54)
         page_layout.addWidget(self.margin_top_spin, 0, 1)
         
         # 下边距
-        page_layout.addWidget(QLabel("下边距 (cm):"), 0, 2)
+        margin_bottom_label = QLabel("下边距 (cm):")
+        margin_bottom_label.setStyleSheet(FONT_STYLES["label"])
+        page_layout.addWidget(margin_bottom_label, 0, 2)
         self.margin_bottom_spin = DoubleSpinBox()
+        self.margin_bottom_spin.setStyleSheet(FONT_STYLES["input"])
         self.margin_bottom_spin.setRange(0.5, 5.0)
         self.margin_bottom_spin.setSingleStep(0.1)
         self.margin_bottom_spin.setValue(2.54)
         page_layout.addWidget(self.margin_bottom_spin, 0, 3)
         
         # 左边距
-        page_layout.addWidget(QLabel("左边距 (cm):"), 1, 0)
+        margin_left_label = QLabel("左边距 (cm):")
+        margin_left_label.setStyleSheet(FONT_STYLES["label"])
+        page_layout.addWidget(margin_left_label, 1, 0)
         self.margin_left_spin = DoubleSpinBox()
+        self.margin_left_spin.setStyleSheet(FONT_STYLES["input"])
         self.margin_left_spin.setRange(0.5, 5.0)
         self.margin_left_spin.setSingleStep(0.1)
         self.margin_left_spin.setValue(2.54)
         page_layout.addWidget(self.margin_left_spin, 1, 1)
         
         # 右边距
-        page_layout.addWidget(QLabel("右边距 (cm):"), 1, 2)
+        margin_right_label = QLabel("右边距 (cm):")
+        margin_right_label.setStyleSheet(FONT_STYLES["label"])
+        page_layout.addWidget(margin_right_label, 1, 2)
         self.margin_right_spin = DoubleSpinBox()
+        self.margin_right_spin.setStyleSheet(FONT_STYLES["input"])
         self.margin_right_spin.setRange(0.5, 5.0)
         self.margin_right_spin.setSingleStep(0.1)
         self.margin_right_spin.setValue(2.54)
@@ -443,15 +508,21 @@ class HomePage(QWidget):
         table_layout = QGridLayout(table_card)
         
         # 表格宽度百分比
-        table_layout.addWidget(QLabel("表格宽度 (%):"), 0, 0)
+        table_width_label = QLabel("表格宽度 (%):")
+        table_width_label.setStyleSheet(FONT_STYLES["label"])
+        table_layout.addWidget(table_width_label, 0, 0)
         self.table_width_spin = SpinBox()
+        self.table_width_spin.setStyleSheet(FONT_STYLES["input"])
         self.table_width_spin.setRange(50, 100)
         self.table_width_spin.setValue(95)
         table_layout.addWidget(self.table_width_spin, 0, 1)
         
         # 自动调整列宽
-        table_layout.addWidget(QLabel("自动调整列宽:"), 0, 2)
+        auto_adjust_label = QLabel("自动调整列宽:")
+        auto_adjust_label.setStyleSheet(FONT_STYLES["label"])
+        table_layout.addWidget(auto_adjust_label, 0, 2)
         self.auto_adjust_check = CheckBox()
+        self.auto_adjust_check.setStyleSheet(FONT_STYLES["label"])
         self.auto_adjust_check.setChecked(True)
         table_layout.addWidget(self.auto_adjust_check, 0, 3)
         
@@ -461,13 +532,16 @@ class HomePage(QWidget):
         
         # 预设管理标题
         preset_title = QLabel("预设管理")
-        preset_title.setStyleSheet("font-size: 12px; font-weight: bold; color: #333333;")
+        preset_title.setStyleSheet(FONT_STYLES["subtitle"])
         preset_layout.addWidget(preset_title)
         
         # 预设选择
         preset_select_layout = QHBoxLayout()
-        preset_select_layout.addWidget(QLabel("选择预设:"))
+        preset_select_label = QLabel("选择预设:")
+        preset_select_label.setStyleSheet(FONT_STYLES["label"])
+        preset_select_layout.addWidget(preset_select_label)
         self.preset_manage_combo = ComboBox()
+        self.preset_manage_combo.setStyleSheet(FONT_STYLES["input"])
         preset_names = ["默认", "标书专用", "紧凑", "打印就绪", "学术论文", "简历", "报告", "演示"]
         self.preset_manage_combo.addItems(preset_names)
         self.preset_manage_combo.currentIndexChanged.connect(self.on_preset_manage_change)
@@ -476,14 +550,16 @@ class HomePage(QWidget):
         
         # 预设描述
         self.preset_desc_label = QLabel("选择一个预设进行编辑")
-        self.preset_desc_label.setStyleSheet("font-size: 11px; color: #666666;")
+        self.preset_desc_label.setStyleSheet(FONT_STYLES["small_label"])
         preset_layout.addWidget(self.preset_desc_label)
         
         # 按钮布局
         button_layout = QHBoxLayout()
         self.save_button = PushButton("保存")
+        self.save_button.setStyleSheet(FONT_STYLES["button"])
         self.save_button.clicked.connect(lambda: self.save_config(dialog))
         self.cancel_button = PushButton("取消")
+        self.cancel_button.setStyleSheet(FONT_STYLES["button"])
         self.cancel_button.clicked.connect(dialog.reject)
         
         button_layout.addStretch()
