@@ -1,34 +1,88 @@
 @echo off
-echo ¿ªÊ¼¹¹½¨WordÎÄµµ¸ñÊ½ĞŞ¸´¹¤¾ß...
 
-:: ÇåÀíÖ®Ç°µÄ¹¹½¨½á¹û
-echo ÇåÀíÖ®Ç°µÄ¹¹½¨½á¹û...
-if exist "dist" rmdir /s /q "dist"
-if exist "build" rmdir /s /q "build"
-if exist "WordFormatFixer.spec" del "WordFormatFixer.spec"
-echo ÇåÀíÍê³É!
+rem æ„å»ºWordæ ¼å¼ä¿®å¤å·¥å…·
 
-:: ¼ì²é²¢°²×°PyInstaller
-echo ¼ì²éPyInstallerÊÇ·ñÒÑ°²×°...
-pip list | findstr pyinstaller > nul
+rem åˆ‡æ¢åˆ°é¡¹ç›®æ ¹ç›®å½•
+cd /d %~dp0
+
+echo æ­£åœ¨æ„å»ºWordæ ¼å¼ä¿®å¤å·¥å…·...
+echo =============================
+
+rem æ£€æŸ¥Pythonç¯å¢ƒ
+echo æ£€æŸ¥Pythonç¯å¢ƒ...
+python --version
 if %errorlevel% neq 0 (
-    echo ÕıÔÚ°²×°PyInstaller...
-    pip install pyinstaller
+    echo é”™è¯¯: æœªæ‰¾åˆ°Pythonç¯å¢ƒï¼Œè¯·å…ˆå®‰è£…Python 3.7+
+    pause
+    exit /b 1
 )
 
-:: °²×°ÏîÄ¿ÒÀÀµ
-echo °²×°ÏîÄ¿ÒÀÀµ...
+rem æ£€æŸ¥Node.jsç¯å¢ƒ
+echo æ£€æŸ¥Node.jsç¯å¢ƒ...
+npm --version
+if %errorlevel% neq 0 (
+    echo é”™è¯¯: æœªæ‰¾åˆ°Node.jsç¯å¢ƒï¼Œè¯·å…ˆå®‰è£…Node.js 16+
+    pause
+    exit /b 1
+)
+
+rem å®‰è£…Pythonä¾èµ–
+echo å®‰è£…Pythonä¾èµ–...
 pip install -r requirements.txt
+if %errorlevel% neq 0 (
+    echo é”™è¯¯: å®‰è£…Pythonä¾èµ–å¤±è´¥
+    pause
+    exit /b 1
+)
 
-:: ¹¹½¨¿ÉÖ´ĞĞÎÄ¼ş
-echo ¹¹½¨¿ÉÖ´ĞĞÎÄ¼ş...
-pyinstaller --onefile --windowed --name WordFormatFixer --add-data "word_format_fixer;word_format_fixer" run.py
+rem å®‰è£…Electronä¾èµ–
+echo å®‰è£…Electronä¾èµ–...
+cd electron
+npm install
+if %errorlevel% neq 0 (
+    echo é”™è¯¯: å®‰è£…Electronä¾èµ–å¤±è´¥
+    pause
+    exit /b 1
+)
 
-echo ¹¹½¨Íê³É£¡
-echo ¿ÉÖ´ĞĞÎÄ¼şÎ»ÖÃ: dist\WordFormatFixer.exe
-echo.
-echo Ê¹ÓÃ·½·¨:
-echo 1. Ë«»÷ dist\WordFormatFixer.exe ÔËĞĞGUI½çÃæ
-echo 2. ÃüÁîĞĞÄ£Ê½: dist\WordFormatFixer.exe --cli ÊäÈëÎÄ¼ş.docx -o Êä³öÎÄ¼ş.docx
-echo.
+rem æ„å»ºElectronåº”ç”¨
+echo æ„å»ºElectronåº”ç”¨...
+npm run build
+if %errorlevel% neq 0 (
+    echo é”™è¯¯: æ„å»ºElectronåº”ç”¨å¤±è´¥
+    pause
+    exit /b 1
+)
+
+cd /d %~dp0
+
+rem å¤åˆ¶å¿…è¦æ–‡ä»¶åˆ°æ„å»ºç›®å½•
+echo å¤åˆ¶å¿…è¦æ–‡ä»¶åˆ°æ„å»ºç›®å½•...
+if not exist build mkdir build
+if not exist build\python-backend mkdir build\python-backend
+if not exist build\python-backend\core mkdir build\python-backend\core
+if not exist build\python-backend\rules mkdir build\python-backend\rules
+if not exist build\python-backend\ipc mkdir build\python-backend\ipc
+if not exist build\python-backend\config mkdir build\python-backend\config
+
+xcopy python-backend\core build\python-backend\core /s /e
+xcopy python-backend\rules build\python-backend\rules /s /e
+xcopy python-backend\ipc build\python-backend\ipc /s /e
+xcopy python-backend\config build\python-backend\config /s /e
+copy python-backend\main.py build\python-backend\main.py
+copy requirements.txt build\requirements.txt
+
+rem åˆ›å»ºæ„å»ºå®Œæˆçš„å¯åŠ¨è„šæœ¬
+echo åˆ›å»ºæ„å»ºå®Œæˆçš„å¯åŠ¨è„šæœ¬...
+(>
+@echo off
+cd /d %%~dp0
+start "Word Format Fixer" python python-backend/main.py
+timeout /t 3
+start "Word Format Fixer UI" electron\dist\word-format-fixer-electron.exe
+) > build\run.bat
+
+echo =============================
+echo æ„å»ºå®Œæˆï¼
+echo æ„å»ºç»“æœä½äº build ç›®å½•
 pause
