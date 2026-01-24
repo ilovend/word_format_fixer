@@ -427,8 +427,8 @@ presets:
       title_bold:
         enabled: true
   test_preset:
-    description: 测试预设
-    name: test_preset
+    description: 这是一个测试预设
+    name: 测试预设
     rules:
       font_standard:
         enabled: true
