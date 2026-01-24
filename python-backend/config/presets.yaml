@@ -426,12 +426,6 @@ presets:
           table_width_percent: 100
       title_bold:
         enabled: true
-  test_preset:
-    description: 这是一个测试预设
-    name: 测试预设
-    rules:
-      font_standard:
-        enabled: true
 rule_defaults:
   font_color:
     enabled: true

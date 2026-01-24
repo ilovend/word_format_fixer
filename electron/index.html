@@ -1774,63 +1774,64 @@
                 categoryElement.className = 'rule-category';
                 
                 // 类别头部
-                const header = document.createElement('div');
-                header.className = 'rule-category-header';
-                header.innerHTML = `
-                    <h3>${categoryName}</h3>
-                    <span>▼</span>
-                `;
+            const header = document.createElement('div');
+            header.className = 'rule-category-header';
+            header.innerHTML = `
+                <h3>${categoryName}</h3>
+                <span>▶</span>
+            `;
+            
+            // 类别内容 - 默认隐藏
+            const content = document.createElement('div');
+            content.className = 'rule-category-content';
+            content.style.display = 'none';
+            
+            // 添加规则项
+            rules.forEach(rule => {
+                const ruleItem = document.createElement('div');
+                ruleItem.className = 'rule-item';
                 
-                // 类别内容
-                const content = document.createElement('div');
-                content.className = 'rule-category-content';
+                // 生成规则控件HTML
+                let ruleControlsHtml = `
+                    <div class="rule-info">
+                        <h4>${rule.name}</h4>
+                        <p>${rule.description}</p>
+                    </div>
+                    <div class="rule-controls">
+                        <label class="toggle-switch">
+                            <input type="checkbox" class="rule-toggle" data-rule="${rule.id}">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>`;
                 
-                // 添加规则项
-                rules.forEach(rule => {
-                    const ruleItem = document.createElement('div');
-                    ruleItem.className = 'rule-item';
+                // 生成参数配置HTML
+                let paramsHtml = '';
+                if (rule.params && Object.keys(rule.params).length > 0) {
+                    paramsHtml = `
+                        <div class="rule-params" style="margin-top: 10px; padding: 10px; background-color: #f8f9fa; border-radius: 4px; border: 1px solid #e0e0e0;">
+                            <h5 style="margin: 0 0 10px 0; font-size: 14px; color: #666;">参数配置</h5>
+                            <div class="params-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px;">`;
                     
-                    // 生成规则控件HTML
-                    let ruleControlsHtml = `
-                        <div class="rule-info">
-                            <h4>${rule.name}</h4>
-                            <p>${rule.description}</p>
-                        </div>
-                        <div class="rule-controls">
-                            <label class="toggle-switch">
-                                <input type="checkbox" class="rule-toggle" data-rule="${rule.id}">
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>`;
-                    
-                    // 生成参数配置HTML
-                    let paramsHtml = '';
-                    if (rule.params && Object.keys(rule.params).length > 0) {
-                        paramsHtml = `
-                            <div class="rule-params" style="margin-top: 10px; padding: 10px; background-color: #f8f9fa; border-radius: 4px; border: 1px solid #e0e0e0;">
-                                <h5 style="margin: 0 0 10px 0; font-size: 14px; color: #666;">参数配置</h5>
-                                <div class="params-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px;">`;
-                        
-                        // 为每个参数生成配置控件
-                        for (const [paramName, paramValue] of Object.entries(rule.params)) {
-                            paramsHtml += generateParamControl(rule.id, paramName, paramValue);
-                        }
-                        
-                        paramsHtml += `</div></div>`;
+                    // 为每个参数生成配置控件
+                    for (const [paramName, paramValue] of Object.entries(rule.params)) {
+                        paramsHtml += generateParamControl(rule.id, paramName, paramValue);
                     }
                     
-                    // 组合HTML
-                    ruleItem.innerHTML = ruleControlsHtml + paramsHtml;
-                    
-                    content.appendChild(ruleItem);
-                });
+                    paramsHtml += `</div></div>`;
+                }
                 
-                categoryElement.appendChild(header);
-                categoryElement.appendChild(content);
-                mainPanel.appendChild(categoryElement);
+                // 组合HTML
+                ruleItem.innerHTML = ruleControlsHtml + paramsHtml;
                 
-                // 添加展开/收起事件
-                header.addEventListener('click', toggleRuleCategory);
+                content.appendChild(ruleItem);
+            });
+            
+            categoryElement.appendChild(header);
+            categoryElement.appendChild(content);
+            mainPanel.appendChild(categoryElement);
+            
+            // 添加展开/收起事件
+            header.addEventListener('click', toggleRuleCategory);
             });
             
             // 添加规则开关事件监听器

@@ -22,6 +22,7 @@
 ### 4. 开发与迭代
 - [迭代计划](docs/development/迭代计划.md) - 项目迭代计划
 - [开发日志](docs/development/开发日志.md) - 开发过程中的记录
+- [整改方案](docs/development/整改方案.md) - 项目整改方案
 - [项目总结](docs/development/项目总结.md) - 项目的总结报告
 
 ### 5. 发布与变更

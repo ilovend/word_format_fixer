@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const axios = require('axios');
@@ -14,6 +14,7 @@ function createWindow() {
         minWidth: 700,  // 设置最小宽度，保证基础内容不挤压
         minHeight: 550, // 设置最小高度
         show: false,     // 先隐藏，加载完再显示防止白屏
+        icon: path.join(__dirname, 'build', 'icon.ico'), // 设置应用图标
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: false,
@@ -53,6 +54,8 @@ function startPythonServer() {
 }
 
 app.on('ready', () => {
+    // 创建窗口前先隐藏菜单栏
+    Menu.setApplicationMenu(null);
     createWindow();
     startPythonServer();
 });
