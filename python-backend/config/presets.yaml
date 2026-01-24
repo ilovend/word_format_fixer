@@ -178,37 +178,32 @@ presets:
     description: 包含所有常用规则的标准配置
     name: 默认配置
     rules:
-      font_color:
+      FontColorRule:
         enabled: true
-        parameters:
-          text_color: '000000'
-      font_standard:
+      FontNameRule:
         enabled: true
-        parameters:
-          chinese_font: 宋体
-          font_size_body: 12
-          title_font: 黑体
-          western_font: Arial
-      list_numbering:
+      FontSizeRule:
         enabled: true
-      paragraph_spacing:
+      HorizontalRuleRemovalRule:
         enabled: true
-        parameters:
-          line_spacing: 1.5
-          space_after: 6
-          space_before: 0
-      table_border:
+      ListNumberingRule:
         enabled: true
-        parameters:
-          add_table_header_format: true
-          border_color: '000000'
-          border_size: 4
-          table_header_bg_color: E3E3E3
-      table_width:
+      PageLayoutRule:
         enabled: true
-        parameters:
-          auto_adjust_columns: true
-          table_width_percent: 95
+      ParagraphSpacingRule:
+        enabled: true
+      TableBorderRule:
+        enabled: true
+      TableBordersRule:
+        enabled: true
+      TableWidthRule:
+        enabled: true
+      TitleAlignmentRule:
+        enabled: true
+      TitleBoldRule:
+        enabled: true
+      TitleFontRule:
+        enabled: true
   meeting_minutes:
     description: 适合会议纪要的格式
     name: 会议纪要格式
