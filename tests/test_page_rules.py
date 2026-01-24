@@ -40,21 +40,21 @@ class PageLayoutRuleTestCase(unittest.TestCase):
     def test_init_with_config(self):
         """测试使用配置初始化规则"""
         config = {
-            "page_width": 21.0,
-            "page_height": 29.7,
-            "margin_top": 2.54,
-            "margin_bottom": 2.54,
-            "margin_left": 3.17,
-            "margin_right": 3.17
+            "page_width_cm": 21.0,
+            "page_height_cm": 29.7,
+            "page_margin_top_cm": 2.54,
+            "page_margin_bottom_cm": 2.54,
+            "page_margin_left_cm": 3.17,
+            "page_margin_right_cm": 3.17
         }
         rule = PageLayoutRule(config)
 
-        self.assertEqual(rule.config["page_width"], 21.0)
-        self.assertEqual(rule.config["page_height"], 29.7)
-        self.assertEqual(rule.config["margin_top"], 2.54)
-        self.assertEqual(rule.config["margin_bottom"], 2.54)
-        self.assertEqual(rule.config["margin_left"], 3.17)
-        self.assertEqual(rule.config["margin_right"], 3.17)
+        self.assertEqual(rule.config["page_width_cm"], 21.0)
+        self.assertEqual(rule.config["page_height_cm"], 29.7)
+        self.assertEqual(rule.config["page_margin_top_cm"], 2.54)
+        self.assertEqual(rule.config["page_margin_bottom_cm"], 2.54)
+        self.assertEqual(rule.config["page_margin_left_cm"], 3.17)
+        self.assertEqual(rule.config["page_margin_right_cm"], 3.17)
 
     def test_get_metadata(self):
         """测试获取规则元数据"""
@@ -63,12 +63,12 @@ class PageLayoutRuleTestCase(unittest.TestCase):
 
         self.assertEqual(metadata["name"], "页面布局设置")
         self.assertEqual(metadata["category"], "页面规则")
-        self.assertIn("page_width", metadata["params"])
-        self.assertIn("page_height", metadata["params"])
-        self.assertIn("margin_top", metadata["params"])
-        self.assertIn("margin_bottom", metadata["params"])
-        self.assertIn("margin_left", metadata["params"])
-        self.assertIn("margin_right", metadata["params"])
+        self.assertIn("page_width_cm", metadata["params"])
+        self.assertIn("page_height_cm", metadata["params"])
+        self.assertIn("page_margin_top_cm", metadata["params"])
+        self.assertIn("page_margin_bottom_cm", metadata["params"])
+        self.assertIn("page_margin_left_cm", metadata["params"])
+        self.assertIn("page_margin_right_cm", metadata["params"])
 
     def test_apply_changes_page_size(self):
         """测试应用规则更改页面大小"""

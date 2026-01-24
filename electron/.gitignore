@@ -33,3 +33,12 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# Backup files
+*.bak
+
+# TypeScript files (if not used)
+tsconfig.json
+
+# Python backend directory (built output)
+word_format_fixer_backend/

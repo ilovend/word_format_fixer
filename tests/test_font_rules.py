@@ -63,7 +63,7 @@ class FontColorRuleTestCase(unittest.TestCase):
 
         self.assertEqual(metadata["name"], "字体颜色统一")
         self.assertEqual(metadata["category"], "字体规则")
-        self.assertIn("font_color", metadata["params"])
+        self.assertIn("text_color", metadata["params"])
 
     def test_apply_changes_text_color_to_black(self):
         """测试应用规则将文本颜色改为黑色"""

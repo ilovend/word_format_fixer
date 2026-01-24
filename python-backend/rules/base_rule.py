@@ -47,4 +47,4 @@ class BaseRule(ABC):
     
     def explain(self) -> str:
         """返回规则的可解释描述"""
-        return self.__doc__ or "无描述"
+        return self.__class__.__doc__ or "无描述"

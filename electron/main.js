@@ -1,11 +1,79 @@
 const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
-const axios = require('axios');
+const fs = require('fs');
 
 let mainWindow;
-let pythonProcess;
-let apiPort = null; // 动态获取端口
+
+// 直接调用Python CLI工具处理请求
+function callPythonCLI(command, data) {
+    return new Promise((resolve, reject) => {
+        // 确定Python后端可执行文件的路径
+        let backendPath;
+        // 判断是否为开发环境
+        // 在开发环境中，__dirname指向electron目录
+        // 在打包环境中，process.resourcesPath指向resources目录
+        const isDev = !app.isPackaged;
+        
+        if (isDev) {
+            // 开发环境：使用electron目录下的后端目录
+            backendPath = path.join(__dirname, 'word_format_fixer_backend', 'word_format_fixer_backend.exe');
+        } else {
+            // 打包环境：使用resources目录下的后端目录
+            backendPath = path.join(process.resourcesPath, 'word_format_fixer_backend', 'word_format_fixer_backend.exe');
+        }
+        
+        // 构建命令行参数
+        const args = [command, JSON.stringify(data)];
+        
+        console.log(`Calling Python CLI: ${backendPath} ${args.join(' ')}`);
+        
+        // 启动Python进程
+        const pythonProcess = spawn(backendPath, args, {
+            cwd: path.join(path.dirname(backendPath)),
+            stdio: ['pipe', 'pipe', 'pipe']
+        });
+        
+        let output = '';
+        let errorOutput = '';
+        
+        // 收集输出
+        pythonProcess.stdout.on('data', (data) => {
+            output += data.toString();
+        });
+        
+        pythonProcess.stderr.on('data', (data) => {
+            errorOutput += data.toString();
+        });
+        
+        // 处理进程结束
+        pythonProcess.on('close', (code) => {
+            console.log(`Python CLI exited with code ${code}`);
+            
+            if (code === 0) {
+                try {
+                    // 解析JSON输出
+                    const result = JSON.parse(output);
+                    resolve(result);
+                } catch (e) {
+                    console.error('Failed to parse Python output:', e.message);
+                    console.error('Raw output:', output);
+                    reject(new Error(`Failed to parse Python output: ${e.message}`));
+                }
+            } else {
+                const errorMsg = errorOutput || `Python process exited with code ${code}`;
+                console.error('Python CLI error:', errorMsg);
+                reject(new Error(errorMsg));
+            }
+        });
+        
+        // 处理进程错误
+        pythonProcess.on('error', (err) => {
+            console.error('Failed to start Python process:', err);
+            reject(err);
+        });
+    });
+}
 
 function createWindow() {
     mainWindow = new BrowserWindow({
@@ -18,8 +86,7 @@ function createWindow() {
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: false,
-            contextIsolation: true,
-            enableRemoteModule: true
+            contextIsolation: true
         }
     });
 
@@ -36,35 +103,14 @@ function createWindow() {
     });
 }
 
-function startPythonServer() {
-    console.log('Starting Python server...');
-    pythonProcess = spawn('python', ['python-backend/main.py'], {
-        cwd: path.join(__dirname, '..'),
-        stdio: 'inherit'
-    });
-
-    pythonProcess.on('error', (err) => {
-        console.error('Failed to start Python server:', err);
-        dialog.showErrorBox('错误', '无法启动Python服务器');
-    });
-
-    pythonProcess.on('close', (code) => {
-        console.log(`Python server exited with code ${code}`);
-    });
-}
-
 app.on('ready', () => {
     // 创建窗口前先隐藏菜单栏
     Menu.setApplicationMenu(null);
     createWindow();
-    startPythonServer();
 });
 
 app.on('window-all-closed', function () {
     if (process.platform !== 'darwin') {
-        if (pythonProcess) {
-            pythonProcess.kill();
-        }
         app.quit();
     }
 });
@@ -75,43 +121,14 @@ app.on('activate', function () {
     }
 });
 
-// 读取端口文件获取后端端口
-async function getApiPort() {
-    const fs = require('fs');
-    const path = require('path');
-    const portFilePath = path.join(__dirname, '..', '.port');
+// IPC处理 - 直接调用Python CLI
 
-    try {
-        // 尝试读取端口文件
-        if (fs.existsSync(portFilePath)) {
-            const port = parseInt(fs.readFileSync(portFilePath, 'utf-8').trim());
-            if (!isNaN(port)) {
-                console.log(`Read port from file: ${port}`);
-                return port;
-            }
-        }
-    } catch (error) {
-        console.log('Failed to read port file:', error.message);
-    }
-
-    // 如果端口文件不存在或读取失败，使用默认端口
-    console.log('Using default port 7777');
-    return 7777;
-}
-
-// IPC处理
 ipcMain.handle('process-document', async (event, documentPath, activeRules) => {
     try {
-        // 获取正确的端口
-        if (!apiPort) {
-            apiPort = await getApiPort();
-        }
-        
-        const response = await axios.post(`http://127.0.0.1:${apiPort}/api/process`, {
+        return await callPythonCLI('process-document', {
             file_path: documentPath,
             active_rules: activeRules
         });
-        return response.data;
     } catch (error) {
         console.error('Error processing document:', error);
         throw error;
@@ -120,13 +137,7 @@ ipcMain.handle('process-document', async (event, documentPath, activeRules) => {
 
 ipcMain.handle('get-rules', async () => {
     try {
-        // 获取正确的端口
-        if (!apiPort) {
-            apiPort = await getApiPort();
-        }
-        
-        const response = await axios.get(`http://127.0.0.1:${apiPort}/api/rules`);
-        return response.data;
+        return await callPythonCLI('get-rules', {});
     } catch (error) {
         console.error('Error getting rules:', error);
         throw error;
@@ -135,30 +146,32 @@ ipcMain.handle('get-rules', async () => {
 
 ipcMain.handle('get-presets', async () => {
     try {
-        // 获取正确的端口
-        if (!apiPort) {
-            apiPort = await getApiPort();
-        }
-        
-        const response = await axios.get(`http://127.0.0.1:${apiPort}/api/presets`);
-        return response.data;
+        return await callPythonCLI('get-presets', {});
     } catch (error) {
         console.error('Error getting presets:', error);
         throw error;
     }
 });
 
-ipcMain.handle('configure-rules', async (event, configs) => {
+ipcMain.handle('save-preset', async (event, presetId, presetData) => {
     try {
-        // 获取正确的端口
-        if (!apiPort) {
-            apiPort = await getApiPort();
-        }
-        
-        const response = await axios.post(`http://127.0.0.1:${apiPort}/api/rules/config`, configs);
-        return response.data;
+        return await callPythonCLI('save-preset', {
+            preset_id: presetId,
+            preset_data: presetData
+        });
     } catch (error) {
-        console.error('Error configuring rules:', error);
+        console.error('Error saving preset:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('delete-preset', async (event, presetId) => {
+    try {
+        return await callPythonCLI('delete-preset', {
+            preset_id: presetId
+        });
+    } catch (error) {
+        console.error('Error deleting preset:', error);
         throw error;
     }
 });
@@ -178,41 +191,6 @@ ipcMain.handle('select-file', async () => {
         return null;
     } catch (error) {
         console.error('Error selecting file:', error);
-        throw error;
-    }
-});
-
-ipcMain.handle('save-preset', async (event, presetId, presetData) => {
-    try {
-        // 获取正确的端口
-        if (!apiPort) {
-            apiPort = await getApiPort();
-        }
-        
-        const response = await axios.post(`http://127.0.0.1:${apiPort}/api/presets/save`, {
-            preset_id: presetId,
-            preset_data: presetData
-        });
-        return response.data;
-    } catch (error) {
-        console.error('Error saving preset:', error);
-        throw error;
-    }
-});
-
-ipcMain.handle('delete-preset', async (event, presetId) => {
-    try {
-        // 获取正确的端口
-        if (!apiPort) {
-            apiPort = await getApiPort();
-        }
-        
-        const response = await axios.delete(`http://127.0.0.1:${apiPort}/api/presets/delete`, {
-            data: { preset_id: presetId }
-        });
-        return response.data;
-    } catch (error) {
-        console.error('Error deleting preset:', error);
         throw error;
     }
 });
@@ -241,10 +219,27 @@ ipcMain.handle('importConfigFile', async () => {
 // 读取文件内容
 ipcMain.handle('readFile', async (event, filePath) => {
     try {
-        const fs = require('fs');
         return fs.readFileSync(filePath, 'utf-8');
     } catch (error) {
         console.error('Error reading file:', error);
         throw error;
+    }
+});
+
+// 获取版本号
+ipcMain.handle('get-version', async () => {
+    try {
+        // 读取VERSION文件
+        const versionPath = path.join(__dirname, '..', 'VERSION');
+        if (fs.existsSync(versionPath)) {
+            return fs.readFileSync(versionPath, 'utf-8').trim();
+        }
+        // 如果VERSION文件不存在，使用package.json中的版本号
+        const pkgPath = path.join(__dirname, 'package.json');
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+        return pkg.version;
+    } catch (error) {
+        console.error('Error getting version:', error);
+        return '1.0.0';
     }
 });

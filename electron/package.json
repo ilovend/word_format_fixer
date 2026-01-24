@@ -6,7 +6,10 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron .",
-    "build": "electron-builder"
+    "build": "node -e \"const fs = require('fs'); const version = fs.readFileSync('../VERSION', 'utf8').trim(); const pkg = require('./package.json'); pkg.version = version; fs.writeFileSync('./package.json', JSON.stringify(pkg, null, 2));\" && electron-builder && node -e \"const fs = require('fs'); const version = '1.0.0'; const pkg = require('./package.json'); pkg.version = version; fs.writeFileSync('./package.json', JSON.stringify(pkg, null, 2));\"",
+    "pack": "electron-packager . WordFormatFixer --platform=win32 --arch=x64 --icon=build/icon.ico --out=../build/electron --extra-resource=word_format_fixer_backend --overwrite",
+    "prepack": "node -e \"const fs = require('fs'); const version = fs.readFileSync('../VERSION', 'utf8').trim(); const pkg = require('./package.json'); pkg.version = version; fs.writeFileSync('./package.json', JSON.stringify(pkg, null, 2));\"",
+    "postpack": "node -e \"const fs = require('fs'); const version = '1.0.0'; const pkg = require('./package.json'); pkg.version = version; fs.writeFileSync('./package.json', JSON.stringify(pkg, null, 2));\""
   },
   "keywords": [
     "word",
@@ -18,7 +21,8 @@
   "license": "MIT",
   "devDependencies": {
     "electron": "^27.0.0",
-    "electron-builder": "^24.6.0"
+    "electron-builder": "^24.6.0",
+    "electron-packager": "^17.1.2"
   },
   "dependencies": {
     "axios": "^1.6.0"
@@ -27,11 +31,30 @@
     "appId": "com.wordformatfixer.app",
     "productName": "Word格式修复工具",
     "directories": {
-      "output": "../build/electron"
+      "output": "../build/installer"
     },
+    "extraResources": [
+      {
+        "from": "word_format_fixer_backend",
+        "to": "word_format_fixer_backend"
+      }
+    ],
     "win": {
       "target": "nsis",
       "icon": "build/icon.ico"
-    }
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Word格式修复工具"
+    },
+    "asar": true,
+    "asarUnpack": [
+      "**/word_format_fixer_backend/**"
+    ],
+    "npmRebuild": false
   }
 }

@@ -7,6 +7,9 @@ import os
 import tempfile
 from pathlib import Path
 
+# 导入pytest
+import pytest
+
 # 获取项目根目录
 project_root = Path(__file__).parent.parent
 
@@ -156,14 +159,4 @@ def sample_complex_doc_path(temp_dir):
     return doc_path
 
 
-# 导入pytest（确保模块存在）
-try:
-    import pytest
-except ImportError:
-    # 如果pytest未安装，定义一个假的pytest装饰器
-    class pytest:
-        @staticmethod
-        def fixture(func=None, *args, **kwargs):
-            def decorator(f):
-                return f
-            return decorator(func) if func else decorator
+

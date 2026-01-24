@@ -170,9 +170,9 @@ class BaseRuleTestCase(unittest.TestCase):
     def test_explain_with_docstring(self):
         """测试有文档字符串的规则的explain方法"""
         class TestRuleWithDoc(BaseRule):
+            """这是规则的详细说明文档"""
             display_name = "带文档的规则"
             category = "测试"
-            """这是规则的详细说明文档"""
 
             def apply(self, doc_context):
                 return RuleResult(

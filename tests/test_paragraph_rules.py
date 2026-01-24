@@ -68,9 +68,9 @@ class ParagraphSpacingRuleTestCase(unittest.TestCase):
         metadata = rule.get_metadata()
 
         self.assertEqual(metadata["name"], "段落间距统一")
-        self.assertIn("line_spacing", metadata["params"])
-        self.assertIn("space_before", metadata["params"])
-        self.assertIn("space_after", metadata["params"])
+        self.assertIn("body_line_spacing", metadata["params"])
+        self.assertIn("body_space_before", metadata["params"])
+        self.assertIn("body_space_after", metadata["params"])
 
     def test_apply_changes_spacing(self):
         """测试应用规则更改段落间距"""
@@ -119,10 +119,10 @@ class TitleBoldRuleTestCase(unittest.TestCase):
 
     def test_init_with_config(self):
         """测试使用配置初始化规则"""
-        config = {"enabled": True}
+        config = {"bold": True}
         rule = TitleBoldRule(config)
 
-        self.assertEqual(rule.config["enabled"], True)
+        self.assertEqual(rule.config["bold"], True)
 
     def test_get_metadata(self):
         """测试获取规则元数据"""
@@ -130,7 +130,7 @@ class TitleBoldRuleTestCase(unittest.TestCase):
         metadata = rule.get_metadata()
 
         self.assertEqual(metadata["name"], "标题加粗")
-        self.assertIn("enabled", metadata["params"])
+        self.assertIn("bold", metadata["params"])
 
     def test_apply_makes_titles_bold(self):
         """测试应用规则使标题加粗"""
@@ -178,13 +178,13 @@ class TitleAlignmentRuleTestCase(unittest.TestCase):
     def test_init_with_config(self):
         """测试使用配置初始化规则"""
         config = {
-            "title1_align": "center",
-            "other_titles_align": "left"
+            "heading1_align": "center",
+            "other_heading_align": "left"
         }
         rule = TitleAlignmentRule(config)
 
-        self.assertEqual(rule.config["title1_align"], "center")
-        self.assertEqual(rule.config["other_titles_align"], "left")
+        self.assertEqual(rule.config["heading1_align"], "center")
+        self.assertEqual(rule.config["other_heading_align"], "left")
 
     def test_get_metadata(self):
         """测试获取规则元数据"""
@@ -192,8 +192,8 @@ class TitleAlignmentRuleTestCase(unittest.TestCase):
         metadata = rule.get_metadata()
 
         self.assertEqual(metadata["name"], "标题对齐设置")
-        self.assertIn("title1_align", metadata["params"])
-        self.assertIn("other_titles_align", metadata["params"])
+        self.assertIn("heading1_align", metadata["params"])
+        self.assertIn("other_heading_align", metadata["params"])
 
     def test_apply_changes_title_alignment(self):
         """测试应用规则更改标题对齐"""
@@ -242,7 +242,7 @@ class ListNumberingRuleTestCase(unittest.TestCase):
     def test_init(self):
         """测试规则初始化"""
         rule = ListNumberingRule()
-        self.assertEqual(rule.display_name, "列表编号修复")
+        self.assertEqual(rule.display_name, "编号列表标准化")
         self.assertEqual(rule.category, "段落规则")
 
     def test_get_metadata(self):
@@ -250,7 +250,7 @@ class ListNumberingRuleTestCase(unittest.TestCase):
         rule = ListNumberingRule()
         metadata = rule.get_metadata()
 
-        self.assertEqual(metadata["name"], "列表编号修复")
+        self.assertEqual(metadata["name"], "编号列表标准化")
 
     def test_apply_fixes_list_numbering(self):
         """测试应用规则修复列表编号"""

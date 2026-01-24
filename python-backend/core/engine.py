@@ -53,7 +53,7 @@ class RuleEngine:
         total_fixed = 0
         
         # 确定要执行的规则
-        if active_rules:
+        if active_rules is not None:
             # 执行前端指定的规则
             for rule_info in active_rules:
                 rule_id = rule_info['rule_id']
@@ -83,6 +83,14 @@ class RuleEngine:
                             "fixed_count": 0,
                             "details": [f"执行失败: {str(e)}"]
                         })
+                else:
+                    # 无效规则ID，添加失败结果
+                    results.append({
+                        "rule_id": rule_id,
+                        "success": False,
+                        "fixed_count": 0,
+                        "details": [f"规则ID不存在: {rule_id}"]
+                    })
         else:
             # 执行所有启用的规则
             for rule_id, rule in self.rules.items():

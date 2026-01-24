@@ -1,0 +1,44 @@
+# Dependencies
+venv/
+.env
+
+# Build outputs
+dist/
+build/
+*.spec
+
+# Logs
+logs
+*.log
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# PyInstaller outputs
+word_format_fixer_backend/
+*.exe
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Test outputs
+.pytest_cache/
+htmlcov/
+
+# Debug files
+*.pdb
+*.dmp

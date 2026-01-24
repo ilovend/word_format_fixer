@@ -130,7 +130,7 @@ class TableBorderRuleTestCase(unittest.TestCase):
     def test_init(self):
         """测试规则初始化"""
         rule = TableBorderRule()
-        self.assertEqual(rule.display_name, "表格边框添加")
+        self.assertEqual(rule.display_name, "表格边框和格式")
         self.assertEqual(rule.category, "表格规则")
 
     def test_init_with_config(self):
@@ -149,7 +149,7 @@ class TableBorderRuleTestCase(unittest.TestCase):
         rule = TableBorderRule()
         metadata = rule.get_metadata()
 
-        self.assertEqual(metadata["name"], "表格边框添加")
+        self.assertEqual(metadata["name"], "表格边框和格式")
         self.assertIn("border_size", metadata["params"])
         self.assertIn("border_color", metadata["params"])
 
@@ -198,7 +198,7 @@ class TableBordersRuleTestCase(unittest.TestCase):
     def test_init(self):
         """测试规则初始化"""
         rule = TableBordersRule()
-        self.assertEqual(rule.display_name, "表格边框添加")
+        self.assertEqual(rule.display_name, "表格边框统一")
         self.assertEqual(rule.category, "表格规则")
 
     def test_get_metadata(self):
@@ -206,7 +206,7 @@ class TableBordersRuleTestCase(unittest.TestCase):
         rule = TableBordersRule()
         metadata = rule.get_metadata()
 
-        self.assertEqual(metadata["name"], "表格边框添加")
+        self.assertEqual(metadata["name"], "表格边框统一")
 
     def test_apply_adds_borders_to_all_tables(self):
         """测试应用规则为所有表格添加边框"""

@@ -10,22 +10,22 @@ from PIL import Image, ImageDraw, ImageFont
 icon_dir = "electron/build"
 os.makedirs(icon_dir, exist_ok=True)
 
-# 创建128x128像素的图标
-icon_size = (128, 128)
+# 创建256x256像素的图标
+icon_size = (256, 256)
 icon = Image.new("RGB", icon_size, color="#2B579A")
 draw = ImageDraw.Draw(icon)
 
 # 绘制简单的图标
 # 绘制文字
 text = "WF"
-font_size = 64
+font_size = 128
 try:
     # 尝试使用系统字体
     font = ImageFont.truetype("arial.ttf", font_size)
 except IOError:
     # 如果没有找到字体，使用默认字体
     font = ImageFont.load_default()
-    font_size = 48
+    font_size = 96
 
 # 计算文字位置
 text_bbox = draw.textbbox((0, 0), text, font=font)
@@ -45,8 +45,8 @@ print(f"PNG图标已创建: {png_path}")
 # 尝试保存为ICO格式（需要安装PIL的ICO插件）
 try:
     ico_path = os.path.join(icon_dir, "icon.ico")
-    # 创建不同尺寸的图标
-    icon_sizes = [(16, 16), (32, 32), (48, 48), (64, 64), (128, 128)]
+    # 创建不同尺寸的图标，包括256x256
+    icon_sizes = [(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)]
     icon.save(ico_path, format="ICO", sizes=icon_sizes)
     print(f"ICO图标已创建: {ico_path}")
 except Exception as e:
