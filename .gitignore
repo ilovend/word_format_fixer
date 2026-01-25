@@ -58,3 +58,6 @@ temp/
 
 # Auto-generated files
 .port
+
+# Build artifacts
+electron/word_format_fixer_backend/

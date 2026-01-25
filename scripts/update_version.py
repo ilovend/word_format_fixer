@@ -16,7 +16,7 @@ def get_current_version() -> str:
     Returns:
         当前版本号
     """
-    version_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "VERSION")
+    version_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "VERSION")
     if os.path.exists(version_file):
         with open(version_file, "r", encoding="utf-8") as f:
             return f.read().strip()
@@ -31,7 +31,7 @@ def update_version(new_version: str) -> None:
         new_version: 新的版本号
     """
     # 更新VERSION文件
-    version_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "VERSION")
+    version_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "VERSION")
     with open(version_file, "w", encoding="utf-8") as f:
         f.write(new_version)
     
