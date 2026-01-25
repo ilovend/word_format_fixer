@@ -8,8 +8,7 @@
     "moduleResolution": "node10",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "strict": false,
-    "ignoreDeprecations": "6.0"
+    "strict": false
   },
   "include": [
     "main.js",

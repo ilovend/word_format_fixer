@@ -2,11 +2,44 @@ from typing import Dict, Any, List
 from core.engine import RuleEngine
 from core.config_loader import ConfigLoader
 
+
+class ServiceContainer:
+    """
+    服务容器 - 单例模式管理共享资源
+    确保 RuleEngine 等核心组件只创建一次，避免重复初始化开销
+    """
+    _instance = None
+    _engine = None
+    _config_loader = None
+    
+    @classmethod
+    def get_instance(cls) -> 'ServiceContainer':
+        """获取单例实例"""
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+    
+    @classmethod
+    def get_engine(cls) -> RuleEngine:
+        """获取共享的规则引擎实例"""
+        if cls._engine is None:
+            cls._engine = RuleEngine()
+        return cls._engine
+    
+    @classmethod
+    def get_config_loader(cls) -> ConfigLoader:
+        """获取共享的配置加载器实例"""
+        if cls._config_loader is None:
+            cls._config_loader = ConfigLoader()
+        return cls._config_loader
+
+
 class DocumentProcessingService:
     """文档处理服务 - 封装文档处理相关的业务逻辑"""
 
     def __init__(self):
-        self.engine = RuleEngine()
+        # 使用共享的规则引擎实例
+        self.engine = ServiceContainer.get_engine()
 
     def process_document(self, document_path: str, active_rules: List[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
@@ -27,7 +60,8 @@ class ConfigManagementService:
     """配置管理服务 - 封装配置管理相关的业务逻辑"""
 
     def __init__(self):
-        self.config_loader = ConfigLoader()
+        # 使用共享的配置加载器实例
+        self.config_loader = ServiceContainer.get_config_loader()
 
     def get_all_presets(self) -> Dict[str, Any]:
         """
@@ -77,7 +111,8 @@ class RuleManagementService:
     """规则管理服务 - 封装规则管理相关的业务逻辑"""
 
     def __init__(self):
-        self.engine = RuleEngine()
+        # 使用共享的规则引擎实例
+        self.engine = ServiceContainer.get_engine()
 
     def get_all_rules(self) -> List[Dict[str, Any]]:
         """
@@ -85,3 +120,22 @@ class RuleManagementService:
         :return: 规则信息列表
         """
         return self.engine.get_rules_info()
+
+    def update_rule_config(self, rule_id: str, params: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        更新单个规则的配置
+        :param rule_id: 规则ID
+        :param params: 新的配置参数
+        :return: 操作结果
+        """
+        if not rule_id:
+            return {"rule_id": rule_id, "success": False, "error": "Missing rule_id"}
+        
+        rule = self.engine.get_rule_by_id(rule_id)
+        if not rule:
+            return {"rule_id": rule_id, "success": False, "error": f"Rule not found: {rule_id}"}
+        
+        errors = rule.update_config(params)
+        if errors:
+            return {"rule_id": rule_id, "success": False, "errors": errors}
+        return {"rule_id": rule_id, "success": True}

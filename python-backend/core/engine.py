@@ -132,3 +132,11 @@ class RuleEngine:
     def get_rules_info(self) -> List[Dict[str, Any]]:
         """获取所有规则信息"""
         return [rule.get_metadata() for rule in self.rules.values()]
+
+    def get_rule_by_id(self, rule_id: str) -> BaseRule:
+        """
+        根据ID获取规则实例
+        :param rule_id: 规则ID
+        :return: 规则实例，若不存在返回 None
+        """
+        return self.rules.get(rule_id)

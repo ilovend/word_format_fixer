@@ -6,6 +6,9 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron .",
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:report": "npx playwright show-report tests/report",
     "build": "node -e \"const fs = require('fs'); const version = fs.readFileSync('../VERSION', 'utf8').trim(); const pkg = require('./package.json'); pkg.version = version; fs.writeFileSync('./package.json', JSON.stringify(pkg, null, 2));\" && electron-builder && node -e \"const fs = require('fs'); const version = '1.0.0'; const pkg = require('./package.json'); pkg.version = version; fs.writeFileSync('./package.json', JSON.stringify(pkg, null, 2));\"",
     "pack": "electron-packager . WordFormatFixer --platform=win32 --arch=x64 --icon=build/icon.ico --out=../build/electron --extra-resource=word_format_fixer_backend --overwrite",
     "prepack": "node -e \"const fs = require('fs'); const version = fs.readFileSync('../VERSION', 'utf8').trim(); const pkg = require('./package.json'); pkg.version = version; fs.writeFileSync('./package.json', JSON.stringify(pkg, null, 2));\"",
@@ -20,9 +23,11 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@playwright/test": "^1.58.0",
     "electron": "^27.0.0",
     "electron-builder": "^24.6.0",
-    "electron-packager": "^17.1.2"
+    "electron-packager": "^17.1.2",
+    "playwright": "^1.58.0"
   },
   "dependencies": {
     "axios": "^1.6.0"

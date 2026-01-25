@@ -89,6 +89,17 @@ def process_command(command: str, data: Dict[str, Any]) -> Dict[str, Any]:
                 "saved_to": result.get("saved_to", file_path)
             }
         
+        elif command == "configure-rules":
+            # 配置规则参数
+            configs = data.get('configs', [])
+            results = []
+            for config in configs:
+                rule_id = config.get('rule_id')
+                params = config.get('params', {})
+                result = rule_service.update_rule_config(rule_id, params)
+                results.append(result)
+            return {"status": "success", "results": results}
+        
         else:
             return {"error": f"Unknown command: {command}"}
             
@@ -96,8 +107,74 @@ def process_command(command: str, data: Dict[str, Any]) -> Dict[str, Any]:
         return {"error": str(e)}
 
 
+def run_interactive_mode():
+    """
+    交互模式：持续读取标准输入，输出 JSON 结果
+    每行输入格式：{"id": "req-1", "command": "cmd_name", "data": {...}}
+    输出格式：{"id": "req-1", "result": {...}}
+    """
+    # 强制标准输出使用 UTF-8
+    sys.stdout.reconfigure(encoding='utf-8')
+    sys.stdin.reconfigure(encoding='utf-8')
+    
+    # 打印就绪信号
+    print(json.dumps({"status": "ready", "pid": os.getpid()}))
+    sys.stdout.flush()
+    
+    while True:
+        try:
+            line = sys.stdin.readline()
+            if not line:
+                break
+                
+            line = line.strip()
+            if not line:
+                continue
+                
+            try:
+                request = json.loads(line)
+                req_id = request.get('id')
+                command = request.get('command')
+                data = request.get('data', {})
+                
+                # 处理命令
+                result = process_command(command, data)
+                
+                # 输出响应
+                response = {
+                    "id": req_id,
+                    "success": "error" not in result,
+                    "result": result
+                }
+                print(json.dumps(response))
+                sys.stdout.flush()
+                
+            except json.JSONDecodeError:
+                print(json.dumps({
+                    "id": None, 
+                    "success": False, 
+                    "error": "Invalid JSON format"
+                }))
+                sys.stdout.flush()
+                
+        except Exception as e:
+            # 捕获循环中的未处理异常，防止进程退出
+            print(json.dumps({
+                "id": None,
+                "success": False, 
+                "error": f"Internal error: {str(e)}"
+            }))
+            sys.stdout.flush()
+
+
 def main():
     """命令行入口"""
+    # 检查是否进入交互模式
+    if len(sys.argv) > 1 and sys.argv[1] == "--interactive":
+        run_interactive_mode()
+        return
+
+    # --- 兼容原有单命令模式 ---
     if len(sys.argv) < 2:
         print(json.dumps({"error": "Missing command"}))
         sys.exit(1)
