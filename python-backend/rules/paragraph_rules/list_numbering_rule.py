@@ -1,24 +1,78 @@
+# -*- coding: utf-8 -*-
+"""编号列表规则"""
+
 import re
 from rules.base_rule import BaseRule, RuleResult
-from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
+from docx.enum.text import WD_LINE_SPACING
 from docx.shared import Pt, Cm
 from docx.oxml.ns import qn
+from schemas.rule_params import (
+    RuleConfigSchema,
+    FontParam,
+    SizeParam,
+    ColorParam,
+    RangeParam
+)
+
 
 class ListNumberingRule(BaseRule):
     """编号列表规则 - 修复文档中的编号列表和项目符号"""
 
     display_name = "编号列表标准化"
     category = "段落规则"
+    description = "修复和标准化文档中的编号列表和项目符号格式"
     
-    def __init__(self, config=None):
-        # 搬运原 default_config 中的相关配置
-        default_params = {
-            'chinese_font': '宋体',
-            'western_font': 'Arial',
-            'font_size_body': 12,
-            'text_color': (0, 0, 0),
-        }
-        super().__init__({**default_params, **(config or {})})
+    # 参数 Schema 定义
+    param_schema = RuleConfigSchema(params=[
+        FontParam(
+            name="chinese_font",
+            display_name="中文字体",
+            default="宋体",
+            description="列表项使用的中文字体"
+        ),
+        FontParam(
+            name="western_font",
+            display_name="西文字体",
+            default="Arial",
+            description="列表项使用的西文字体"
+        ),
+        SizeParam(
+            name="font_size_body",
+            display_name="列表字号",
+            default=12,
+            min_value=8,
+            max_value=24,
+            step=0.5,
+            unit="pt",
+            description="列表项文本的字号"
+        ),
+        ColorParam(
+            name="text_color",
+            display_name="文本颜色",
+            default="#000000",
+            description="列表项文本的颜色"
+        ),
+        RangeParam(
+            name="list_indent",
+            display_name="列表缩进",
+            default=1.27,
+            min_value=0.5,
+            max_value=3.0,
+            step=0.1,
+            unit="cm",
+            description="列表项的左缩进距离"
+        ),
+        RangeParam(
+            name="line_spacing",
+            display_name="行间距",
+            default=1.5,
+            min_value=1.0,
+            max_value=3.0,
+            step=0.1,
+            unit="倍",
+            description="列表项的行距倍数"
+        ),
+    ])
     
     def apply(self, doc_context) -> RuleResult:
         """
@@ -64,7 +118,7 @@ class ListNumberingRule(BaseRule):
                         qn('w:eastAsia'), 
                         self.config['chinese_font']
                     )
-                    run.font.color.rgb = self._get_rgb_color(*self.config['text_color'])
+                    run.font.color.rgb = self._parse_color(self.config.get('text_color', '#000000'))
                     run.font.size = Pt(self.config['font_size_body'])
                     
                     # 设置为无序列表样式
@@ -73,13 +127,12 @@ class ListNumberingRule(BaseRule):
                     
                     # 设置缩进
                     paragraph_format = paragraph.paragraph_format
-                    paragraph_format.left_indent = Cm(1.27)
+                    paragraph_format.left_indent = Cm(self.config.get('list_indent', 1.27))
                     paragraph_format.first_line_indent = Cm(-0.64)
                     paragraph_format.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
-                    paragraph_format.line_spacing = 1.5
+                    paragraph_format.line_spacing = self.config.get('line_spacing', 1.5)
                     
                     fixed_count += 1
-                    details.append(f"修复项目符号段落: {original_text[:15]}...")
                     break
             
             if bullet_matched:
@@ -91,7 +144,6 @@ class ListNumberingRule(BaseRule):
                 if match:
                     self._format_numbered_paragraph(paragraph, pattern_name, match, original_text, document)
                     fixed_count += 1
-                    details.append(f"修复编号段落: {original_text[:15]}...")
                     break
         
         details.append(f"总共修复了 {fixed_count} 个编号或项目符号段落")
@@ -134,7 +186,7 @@ class ListNumberingRule(BaseRule):
             qn('w:eastAsia'), 
             self.config['chinese_font']
         )
-        run.font.color.rgb = self._get_rgb_color(*self.config['text_color'])
+        run.font.color.rgb = self._parse_color(self.config.get('text_color', '#000000'))
         run.font.size = Pt(self.config['font_size_body'])
         
         # 设置段落格式
@@ -145,28 +197,44 @@ class ListNumberingRule(BaseRule):
         
         # 设置缩进
         paragraph_format = paragraph.paragraph_format
+        list_indent = self.config.get('list_indent', 1.27)
         
         # 根据编号类型设置不同缩进
         if pattern_type.startswith('arabic') or pattern_type.startswith('chinese'):
             # 主要列表项
-            paragraph_format.left_indent = Cm(1.27)
+            paragraph_format.left_indent = Cm(list_indent)
             paragraph_format.first_line_indent = Cm(-0.64)
         elif pattern_type.startswith('lower_') or pattern_type.startswith('upper_'):
             # 次级列表项
-            paragraph_format.left_indent = Cm(2.54)
+            paragraph_format.left_indent = Cm(list_indent * 2)
             paragraph_format.first_line_indent = Cm(-0.64)
         else:
             # 默认缩进
-            paragraph_format.left_indent = Cm(1.27)
+            paragraph_format.left_indent = Cm(list_indent)
             paragraph_format.first_line_indent = Cm(-0.64)
         
         # 设置行距
         paragraph_format.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
-        paragraph_format.line_spacing = 1.5
+        paragraph_format.line_spacing = self.config.get('line_spacing', 1.5)
         paragraph_format.space_before = Pt(0)
         paragraph_format.space_after = Pt(6)
     
-    def _get_rgb_color(self, r, g, b):
-        """获取RGB颜色对象"""
+    def _parse_color(self, color_value):
+        """解析颜色值"""
         from docx.shared import RGBColor
-        return RGBColor(r, g, b)
+        
+        # 如果是字符串（十六进制）
+        if isinstance(color_value, str):
+            if color_value.startswith('#'):
+                color_value = color_value[1:]
+            if len(color_value) == 6:
+                r = int(color_value[0:2], 16)
+                g = int(color_value[2:4], 16)
+                b = int(color_value[4:6], 16)
+                return RGBColor(r, g, b)
+        # 如果是元组
+        elif isinstance(color_value, (tuple, list)) and len(color_value) == 3:
+            return RGBColor(*color_value)
+        
+        # 默认黑色
+        return RGBColor(0, 0, 0)

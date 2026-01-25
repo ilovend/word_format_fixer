@@ -6,6 +6,7 @@ import sys
 import os
 import tempfile
 from pathlib import Path
+import pytest
 
 # 导入pytest
 import pytest

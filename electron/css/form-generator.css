@@ -1,0 +1,329 @@
+/**
+ * 动态表单生成器样式
+ * 配套 form-generator.js 使用
+ */
+
+/* ============== 参数控件容器 ============== */
+.param-control {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 6px;
+    border: 1px solid #eee;
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.param-control:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(43, 87, 154, 0.1);
+}
+
+.param-control label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.param-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+/* ============== 滑块控件 ============== */
+.param-range-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.param-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    background: linear-gradient(to right, var(--primary-color) 0%, #e0e0e0 100%);
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+}
+
+.param-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: transform 0.15s;
+}
+
+.param-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+}
+
+.param-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.param-value-display {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.param-number-input {
+    width: 80px;
+    padding: 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 13px;
+    text-align: center;
+    transition: border-color 0.2s;
+}
+
+.param-number-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(43, 87, 154, 0.1);
+}
+
+.param-unit {
+    font-size: 12px;
+    color: var(--text-secondary);
+    min-width: 24px;
+}
+
+/* ============== 颜色选择器 ============== */
+.param-color-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.param-color-picker {
+    width: 44px;
+    height: 36px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 2px;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.param-color-picker::-webkit-color-swatch-wrapper {
+    padding: 2px;
+}
+
+.param-color-picker::-webkit-color-swatch {
+    border: none;
+    border-radius: 4px;
+}
+
+.param-color-input {
+    flex: 1;
+    max-width: 100px;
+    padding: 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: monospace;
+    text-transform: uppercase;
+}
+
+.param-color-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+/* ============== 字体选择器 ============== */
+.param-font-select {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    background-color: #fff;
+}
+
+.param-font-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.param-font-preview {
+    margin-top: 8px;
+    padding: 10px;
+    background-color: var(--light-bg);
+    border-radius: 4px;
+    font-size: 14px;
+    text-align: center;
+    border: 1px dashed var(--border-color);
+}
+
+/* ============== 下拉选择框 ============== */
+.param-select {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    background-color: #fff;
+    transition: border-color 0.2s;
+}
+
+.param-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(43, 87, 154, 0.1);
+}
+
+/* ============== 布尔开关 ============== */
+.param-control-boolean {
+    flex-direction: row;
+    align-items: center;
+}
+
+.param-boolean-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.param-boolean-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.param-toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 24px;
+}
+
+.param-toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.param-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.3s;
+    border-radius: 24px;
+}
+
+.param-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.param-toggle-switch input:checked+.param-toggle-slider {
+    background-color: var(--primary-color);
+}
+
+.param-toggle-switch input:checked+.param-toggle-slider:before {
+    transform: translateX(24px);
+}
+
+.param-toggle-switch input:focus+.param-toggle-slider {
+    box-shadow: 0 0 0 3px rgba(43, 87, 154, 0.2);
+}
+
+/* ============== 文本输入框 ============== */
+.param-text-input {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 13px;
+    transition: border-color 0.2s;
+}
+
+.param-text-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(43, 87, 154, 0.1);
+}
+
+/* ============== 数字输入容器 ============== */
+.param-number-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ============== 参数网格优化 ============== */
+.params-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+}
+
+/* 规则参数面板 */
+.rule-params {
+    margin-top: 12px;
+    padding: 15px;
+    background-color: #fafafa;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+}
+
+.rule-params h5 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rule-params h5::before {
+    content: "⚙️";
+    font-size: 14px;
+}
+
+/* ============== 响应式 ============== */
+@media (max-width: 768px) {
+    .params-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .param-control {
+        padding: 8px;
+    }
+
+    .param-range-container {
+        flex-direction: column;
+    }
+
+    .param-number-input {
+        width: 100%;
+    }
+}

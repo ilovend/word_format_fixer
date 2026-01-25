@@ -1,18 +1,45 @@
+# -*- coding: utf-8 -*-
+"""标题对齐规则"""
+
 from rules.base_rule import BaseRule, RuleResult
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from schemas.rule_params import RuleConfigSchema, EnumParam
+
 
 class TitleAlignmentRule(BaseRule):
     """标题对齐规则 - 一级标题居中，其他标题左对齐"""
 
     display_name = "标题对齐设置"
     category = "段落规则"
-
-    def __init__(self, config=None):
-        default_params = {
-            'heading1_align': 'center',  # 一级标题对齐方式
-            'other_heading_align': 'left',  # 其他标题对齐方式
-        }
-        super().__init__({**default_params, **(config or {})})
+    description = "分别设置一级标题和其他级别标题的对齐方式"
+    
+    # 参数 Schema 定义
+    param_schema = RuleConfigSchema(params=[
+        EnumParam(
+            name="heading1_align",
+            display_name="一级标题对齐",
+            options=[
+                {"value": "center", "label": "居中"},
+                {"value": "left", "label": "左对齐"},
+                {"value": "right", "label": "右对齐"},
+                {"value": "justify", "label": "两端对齐"},
+            ],
+            default="center",
+            description="一级标题的对齐方式"
+        ),
+        EnumParam(
+            name="other_heading_align",
+            display_name="其他标题对齐",
+            options=[
+                {"value": "left", "label": "左对齐"},
+                {"value": "center", "label": "居中"},
+                {"value": "right", "label": "右对齐"},
+                {"value": "justify", "label": "两端对齐"},
+            ],
+            default="left",
+            description="二级及以下标题的对齐方式"
+        ),
+    ])
 
     def apply(self, doc_context) -> RuleResult:
         """

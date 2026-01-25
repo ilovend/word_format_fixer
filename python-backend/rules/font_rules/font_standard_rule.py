@@ -1,19 +1,39 @@
+# -*- coding: utf-8 -*-
+"""字体标准化规则集"""
+
 from rules.base_rule import BaseRule, RuleResult
 from docx.shared import Pt
 from docx.oxml.ns import qn
+from schemas.rule_params import (
+    RuleConfigSchema, 
+    FontParam, 
+    SizeParam,
+    RangeParam
+)
+
 
 class FontNameRule(BaseRule):
     """字体名称标准化规则 - 设置中英文字体"""
 
     display_name = "字体名称标准化"
     category = "字体规则"
-
-    def __init__(self, config=None):
-        default_params = {
-            'chinese_font': '宋体',
-            'western_font': 'Arial',
-        }
-        super().__init__({**default_params, **(config or {})})
+    description = "为文档设置统一的中文字体和西文字体"
+    
+    # 参数 Schema 定义
+    param_schema = RuleConfigSchema(params=[
+        FontParam(
+            name="chinese_font",
+            display_name="中文字体",
+            default="宋体",
+            description="中文内容使用的字体"
+        ),
+        FontParam(
+            name="western_font",
+            display_name="西文字体",
+            default="Arial",
+            description="英文和数字使用的字体"
+        ),
+    ])
 
     def apply(self, doc_context) -> RuleResult:
         """
@@ -46,7 +66,7 @@ class FontNameRule(BaseRule):
                             )
                             fixed_count += 1
 
-        details.append(f"设置中文字体: {self.config['chinese_font']}, 西文字体: {self.config['western_font']}")
+        details.append(f"中文字体: {self.config['chinese_font']}, 西文字体: {self.config['western_font']}")
         details.append(f"标准化了 {fixed_count} 个文本运行的字体")
 
         return RuleResult(
@@ -62,12 +82,17 @@ class TitleFontRule(BaseRule):
 
     display_name = "标题字体设置"
     category = "字体规则"
-
-    def __init__(self, config=None):
-        default_params = {
-            'title_font': '黑体',
-        }
-        super().__init__({**default_params, **(config or {})})
+    description = "为文档标题设置专用字体"
+    
+    # 参数 Schema 定义
+    param_schema = RuleConfigSchema(params=[
+        FontParam(
+            name="title_font",
+            display_name="标题中文字体",
+            default="黑体",
+            description="标题使用的中文字体"
+        ),
+    ])
 
     def apply(self, doc_context) -> RuleResult:
         """
@@ -104,16 +129,61 @@ class FontSizeRule(BaseRule):
 
     display_name = "字号标准化"
     category = "字体规则"
-
-    def __init__(self, config=None):
-        default_params = {
-            'font_size_body': 12,
-            'font_size_title1': 22,
-            'font_size_title2': 18,
-            'font_size_title3': 16,
-            'min_font_size': 10,  # 小于此字号的文本会被标准化
-        }
-        super().__init__({**default_params, **(config or {})})
+    description = "统一设置文档中正文和各级标题的字号"
+    
+    # 参数 Schema 定义
+    param_schema = RuleConfigSchema(params=[
+        SizeParam(
+            name="font_size_body",
+            display_name="正文字号",
+            default=12,
+            min_value=8,
+            max_value=36,
+            step=0.5,
+            unit="pt",
+            description="正文内容的字号大小"
+        ),
+        SizeParam(
+            name="font_size_title1",
+            display_name="一级标题字号",
+            default=22,
+            min_value=12,
+            max_value=48,
+            step=1,
+            unit="pt",
+            description="一级标题（H1）的字号"
+        ),
+        SizeParam(
+            name="font_size_title2",
+            display_name="二级标题字号",
+            default=18,
+            min_value=10,
+            max_value=36,
+            step=1,
+            unit="pt",
+            description="二级标题（H2）的字号"
+        ),
+        SizeParam(
+            name="font_size_title3",
+            display_name="三级标题字号",
+            default=16,
+            min_value=10,
+            max_value=30,
+            step=1,
+            unit="pt",
+            description="三级标题（H3）的字号"
+        ),
+        RangeParam(
+            name="min_font_size",
+            display_name="最小允许字号",
+            default=10,
+            min_value=6,
+            max_value=16,
+            step=1,
+            unit="pt",
+            description="小于此字号的文本会被自动调整为正文字号"
+        ),
+    ])
 
     def apply(self, doc_context) -> RuleResult:
         """

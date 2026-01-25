@@ -1,16 +1,26 @@
+# -*- coding: utf-8 -*-
+"""标题加粗规则"""
+
 from rules.base_rule import BaseRule, RuleResult
+from schemas.rule_params import RuleConfigSchema, BoolParam
+
 
 class TitleBoldRule(BaseRule):
     """标题加粗规则 - 所有标题文本加粗"""
 
     display_name = "标题加粗"
     category = "段落规则"
-
-    def __init__(self, config=None):
-        default_params = {
-            'bold': True,  # 是否加粗
-        }
-        super().__init__({**default_params, **(config or {})})
+    description = "设置是否将所有标题文本加粗显示"
+    
+    # 参数 Schema 定义
+    param_schema = RuleConfigSchema(params=[
+        BoolParam(
+            name="bold",
+            display_name="加粗标题",
+            default=True,
+            description="开启后所有标题文本将加粗显示"
+        ),
+    ])
 
     def apply(self, doc_context) -> RuleResult:
         """
