@@ -131,8 +131,6 @@ presets:
         enabled: true
       TableBorderRule:
         enabled: true
-      TableBordersRule:
-        enabled: true
       TableWidthRule:
         enabled: true
       TitleAlignmentRule:
