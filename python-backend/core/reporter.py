@@ -20,7 +20,7 @@ class FixReporter:
         for result in self.results.values():
             if result.success:
                 success_count += 1
-                total_fixed += result.fixed_elements
+                total_fixed += result.fixed_count
             else:
                 failed_count += 1
         
@@ -28,7 +28,7 @@ class FixReporter:
             "total_rules": len(self.results),
             "success_count": success_count,
             "failed_count": failed_count,
-            "total_fixed_elements": total_fixed,
+            "total_fixed": total_fixed,
             "success_rate": f"{success_count / len(self.results) * 100:.1f}%" if self.results else "0%"
         }
     
@@ -37,7 +37,7 @@ class FixReporter:
         return {
             "summary": self.generate_summary(),
             "detailed_results": {
-                rule_id: result.to_dict()
+                rule_id: result.dict()
                 for rule_id, result in self.results.items()
             }
         }

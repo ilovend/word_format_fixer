@@ -3,20 +3,22 @@ presets:
     description: 符合学术论文的格式规范
     name: 学术论文格式
     rules:
-      font_color:
+      FontColorRule:
         enabled: true
         parameters:
           text_color: '000000'
-      font_standard:
+      FontNameRule:
         enabled: true
         parameters:
           chinese_font: 宋体
-          font_size_body: 12
-          title_font: 黑体
           western_font: Times New Roman
-      list_numbering:
+      FontSizeRule:
         enabled: true
-      page_layout:
+        parameters:
+          font_size_body: 12
+      ListNumberingRule:
+        enabled: true
+      PageLayoutRule:
         enabled: true
         parameters:
           page_height_cm: 29.7
@@ -25,44 +27,50 @@ presets:
           page_margin_right_cm: 2.54
           page_margin_top_cm: 2.54
           page_width_cm: 21.0
-      paragraph_spacing:
+      ParagraphSpacingRule:
         enabled: true
         parameters:
           line_spacing: 1.5
           space_after: 6
           space_before: 0
-      table_border:
+      TableBorderRule:
         enabled: true
         parameters:
           add_table_header_format: true
           border_color: '000000'
           border_size: 4
           table_header_bg_color: E3E3E3
-      table_width:
+      TableWidthRule:
         enabled: true
         parameters:
           auto_adjust_columns: true
           table_width_percent: 90
-      title_bold:
+      TitleBoldRule:
         enabled: true
+      TitleFontRule:
+        enabled: true
+        parameters:
+          title_font: 黑体
   bid:
     description: 专业竞标文档格式
     name: 竞标书标准
     rules:
-      font_color:
+      FontColorRule:
         enabled: true
         parameters:
           text_color: '000000'
-      font_standard:
+      FontNameRule:
         enabled: true
         parameters:
           chinese_font: 黑体
-          font_size_body: 14
-          title_font: 黑体
           western_font: Arial
-      list_numbering:
+      FontSizeRule:
         enabled: true
-      page_layout:
+        parameters:
+          font_size_body: 14
+      ListNumberingRule:
+        enabled: true
+      PageLayoutRule:
         enabled: true
         parameters:
           page_height_cm: 29.7
@@ -71,26 +79,30 @@ presets:
           page_margin_right_cm: 2.54
           page_margin_top_cm: 2.54
           page_width_cm: 21.0
-      paragraph_spacing:
+      ParagraphSpacingRule:
         enabled: true
         parameters:
           line_spacing: 1.5
           space_after: 6
           space_before: 0
-      table_border:
+      TableBorderRule:
         enabled: true
         parameters:
           add_table_header_format: true
           border_color: '000000'
           border_size: 4
           table_header_bg_color: E3E3E3
-      table_width:
+      TableWidthRule:
         enabled: true
         parameters:
           auto_adjust_columns: true
           table_width_percent: 95
-      title_bold:
+      TitleBoldRule:
         enabled: true
+      TitleFontRule:
+        enabled: true
+        parameters:
+          title_font: 黑体
   business:
     description: 适合企业正式文档
     name: 企业公文规范
@@ -133,20 +145,22 @@ presets:
     description: 适合会议纪要的格式
     name: 会议纪要格式
     rules:
-      font_color:
+      FontColorRule:
         enabled: true
         parameters:
           text_color: '000000'
-      font_standard:
+      FontNameRule:
         enabled: true
         parameters:
           chinese_font: 宋体
-          font_size_body: 12
-          title_font: 黑体
           western_font: Arial
-      list_numbering:
+      FontSizeRule:
         enabled: true
-      page_layout:
+        parameters:
+          font_size_body: 12
+      ListNumberingRule:
+        enabled: true
+      PageLayoutRule:
         enabled: true
         parameters:
           page_height_cm: 29.7
@@ -155,14 +169,18 @@ presets:
           page_margin_right_cm: 2.54
           page_margin_top_cm: 2.54
           page_width_cm: 21.0
-      paragraph_spacing:
+      ParagraphSpacingRule:
         enabled: true
         parameters:
           line_spacing: 1.5
           space_after: 6
           space_before: 0
-      title_bold:
+      TitleBoldRule:
         enabled: true
+      TitleFontRule:
+        enabled: true
+        parameters:
+          title_font: 黑体
   minimal:
     description: 仅包含必要规则
     name: 最小配置
@@ -175,20 +193,22 @@ presets:
     description: 适合产品说明书的格式
     name: 产品说明书格式
     rules:
-      font_color:
+      FontColorRule:
         enabled: true
         parameters:
           text_color: '000000'
-      font_standard:
+      FontNameRule:
         enabled: true
         parameters:
           chinese_font: 微软雅黑
-          font_size_body: 14
-          title_font: 黑体
           western_font: Arial
-      list_numbering:
+      FontSizeRule:
         enabled: true
-      page_layout:
+        parameters:
+          font_size_body: 14
+      ListNumberingRule:
+        enabled: true
+      PageLayoutRule:
         enabled: true
         parameters:
           page_height_cm: 29.7
@@ -197,26 +217,30 @@ presets:
           page_margin_right_cm: 2.54
           page_margin_top_cm: 2.54
           page_width_cm: 21.0
-      paragraph_spacing:
+      ParagraphSpacingRule:
         enabled: true
         parameters:
           line_spacing: 1.5
           space_after: 8
           space_before: 0
-      table_border:
+      TableBorderRule:
         enabled: true
         parameters:
           add_table_header_format: true
           border_color: '000000'
           border_size: 4
           table_header_bg_color: E3E3E3
-      table_width:
+      TableWidthRule:
         enabled: true
         parameters:
           auto_adjust_columns: true
           table_width_percent: 95
-      title_bold:
+      TitleBoldRule:
         enabled: true
+      TitleFontRule:
+        enabled: true
+        parameters:
+          title_font: 黑体
   report:
     description: 适合各类报告的格式
     name: 报告模板
@@ -237,22 +261,29 @@ presets:
         enabled: true
       FontNameRule:
         enabled: true
+  test_preset:
+    description: 这是一个测试预设
+    name: 测试预设
+    rules:
+      font_standard:
+        enabled: true
 rule_defaults:
-  font_color:
+  FontColorRule:
     enabled: true
     text_color: '000000'
-  font_standard:
+  FontNameRule:
     chinese_font: 宋体
+    enabled: true
+    western_font: Arial
+  FontSizeRule:
     enabled: true
     font_size_body: 12
     font_size_title1: 22
     font_size_title2: 18
     font_size_title3: 16
-    title_font: 黑体
-    western_font: Arial
-  list_numbering:
+  ListNumberingRule:
     enabled: true
-  page_layout:
+  PageLayoutRule:
     enabled: true
     page_height_cm: 29.7
     page_margin_bottom_cm: 2.54
@@ -260,20 +291,23 @@ rule_defaults:
     page_margin_right_cm: 2.54
     page_margin_top_cm: 2.54
     page_width_cm: 21.0
-  paragraph_spacing:
+  ParagraphSpacingRule:
     enabled: true
     line_spacing: 1.5
     space_after: 6
     space_before: 0
-  table_border:
+  TableBorderRule:
     add_table_header_format: true
     border_color: '000000'
     border_size: 4
     enabled: true
     table_header_bg_color: E3E3E3
-  table_width:
+  TableWidthRule:
     auto_adjust_columns: true
     enabled: true
     table_width_percent: 95
-  title_bold:
+  TitleBoldRule:
     enabled: true
+  TitleFontRule:
+    enabled: true
+    title_font: 黑体

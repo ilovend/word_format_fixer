@@ -36,7 +36,7 @@ class BaseRule(ABC):
     # 子类需要覆盖的类属性
     display_name: str = "未命名规则"
     category: str = "其他规则"
-    description: str = "无描述"
+    description: Optional[str] = None
     param_schema: Optional[RuleConfigSchema] = None
     
     def __init__(self, config: Dict[str, Any] = None):
@@ -99,7 +99,7 @@ class BaseRule(ABC):
         metadata = {
             "id": self.rule_id,
             "name": self.display_name,
-            "description": self.description,
+            "description": self.explain(),
             "category": self.category,
             "enabled": self.enabled,
             "params": self.config,  # 当前配置值
