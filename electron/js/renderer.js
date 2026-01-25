@@ -38,8 +38,8 @@ function initializeEventListeners() {
     safeBind('processFile', 'click', processFileWithDiff);
 
     // 预设选择
-    document.querySelectorAll('.preset-card').forEach(card => {
-        card.addEventListener('click', function () {
+    document.querySelectorAll('.preset-item').forEach(item => {
+        item.addEventListener('click', function () {
             // @ts-ignore
             selectPreset(this.dataset.preset);
         });

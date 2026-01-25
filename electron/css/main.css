@@ -46,6 +46,10 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+body.modal-open {
+    overflow: hidden;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
     width: 6px;
@@ -263,6 +267,11 @@ body {
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
+.drop-text {
+    max-width: 520px;
+    margin: 0 auto;
+}
+
 .drop-actions {
     display: flex;
     justify-content: center;
@@ -331,6 +340,12 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 24px 0 16px 0;
+}
+
+.bg-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .section-header h2 {
@@ -521,6 +536,119 @@ input:checked+.toggle-slider:before {
     z-index: 20;
 }
 
+.batch-queue {
+    margin-top: 12px;
+    text-align: left;
+}
+
+.progress-track {
+    height: 8px;
+    background: rgba(148, 163, 184, 0.25);
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(to right, var(--primary), #2563eb);
+    border-radius: 99px;
+    transition: width 0.2s ease;
+}
+
+.status-message {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 240px;
+}
+
+.status-text {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+.mini-progress {
+    width: 240px;
+    height: 6px;
+    background: rgba(148, 163, 184, 0.25);
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.mini-progress .bar {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(to right, var(--primary), #2563eb);
+    transition: width 0.2s ease;
+}
+
+.action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dev-log-toggle {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.85);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+    z-index: 1100;
+    user-select: none;
+}
+
+.dev-log-toggle:hover {
+    background: rgba(15, 23, 42, 1);
+    transform: translateY(-1px);
+}
+
+.developer-log {
+    position: fixed;
+    right: 16px;
+    bottom: 60px;
+    width: 420px;
+    max-width: calc(100vw - 32px);
+    max-height: 50vh;
+    /* Important: limit height */
+    background: rgba(15, 23, 42, 0.95);
+    color: #e2e8f0;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: var(--radius-lg);
+    padding: 12px 14px;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    z-index: 1100;
+}
+
+.developer-log h4 {
+    margin: 0 0 8px 0;
+    font-size: 12px;
+    font-weight: 700;
+    color: #f1f5f9;
+    letter-spacing: 0.5px;
+}
+
+.developer-log pre {
+    margin: 0;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 11px;
+    line-height: 1.5;
+    max-height: calc(50vh - 52px);
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
 /* Buttons Polish */
 .btn {
     border: none;
@@ -587,6 +715,11 @@ input:checked+.toggle-slider:before {
 .btn-danger:hover {
     background: #b91c1c;
     box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
 }
 
 .btn-xl {
