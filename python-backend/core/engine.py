@@ -14,8 +14,17 @@ class RuleEngine:
     
     def _load_rules(self):
         """动态加载所有规则"""
+        import sys
+        if getattr(sys, 'frozen', False):
+            base_dir = os.path.dirname(sys.executable)
+            # Ensure base dir is in sys.path so we can import 'rules' package
+            if base_dir not in sys.path:
+                sys.path.insert(0, base_dir)
+        else:
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            
         # 扫描rules目录下的所有规则
-        rules_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'rules')
+        rules_dir = os.path.join(base_dir, 'rules')
         
         # 遍历所有规则目录
         for root, dirs, files in os.walk(rules_dir):

@@ -3,14 +3,24 @@ import os
 from typing import Dict, Any, Optional
 from core.config_repository import IConfigRepository
 
+import sys
+
 class YamlConfigRepository(IConfigRepository):
     """YAML文件配置仓库 - 实现配置持久化"""
 
     def __init__(self, config_path: str = None):
-        self.config_path = config_path or os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            'config', 'presets.yaml'
-        )
+        if config_path:
+            self.config_path = config_path
+        else:
+            # Determine base directory
+            if getattr(sys, 'frozen', False):
+                # If packaged, use the directory of the executable
+                base_dir = os.path.dirname(sys.executable)
+            else:
+                # If running from source, use the project root (relative to this file)
+                base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            
+            self.config_path = os.path.join(base_dir, 'config', 'presets.yaml')
 
     def load_config(self) -> Dict[str, Any]:
         """加载配置文件"""

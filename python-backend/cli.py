@@ -32,7 +32,13 @@ def get_version() -> str:
     Returns:
         当前版本号
     """
-    version_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "VERSION")
+    if getattr(sys, 'frozen', False):
+        base_dir = os.path.dirname(sys.executable)
+    else:
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        
+    version_file = os.path.join(base_dir, "VERSION")
+    
     if os.path.exists(version_file):
         with open(version_file, "r", encoding="utf-8") as f:
             return f.read().strip()
