@@ -9,6 +9,9 @@ from .paragraph_rules.paragraph_spacing_rule import ParagraphSpacingRule
 from .paragraph_rules.title_bold_rule import TitleBoldRule
 from .paragraph_rules.title_alignment_rule import TitleAlignmentRule
 from .paragraph_rules.list_numbering_rule import ListNumberingRule
+# from .paragraph_rules.heading_numbering_rule import HeadingNumberingRule  # File missing
+# from .paragraph_rules.toc_generation_rule import TocGenerationRule  # File missing
+from .paragraph_rules.horizontal_rule_removal_rule import HorizontalRuleRemovalRule
 
 # 表格规则
 from .table_rules.table_width_rule import TableWidthRule
@@ -16,6 +19,7 @@ from .table_rules.table_border_rule import TableBorderRule
 
 # 页面规则
 from .page_rules.page_layout_rule import PageLayoutRule
+# from .page_rules.header_footer_rule import HeaderFooterRule  # File missing
 
 # 规则注册表
 RULES_REGISTRY = {
@@ -30,6 +34,9 @@ RULES_REGISTRY = {
     'title_bold': TitleBoldRule(),
     'title_alignment': TitleAlignmentRule(),
     'list_numbering': ListNumberingRule(),
+    # 'heading_numbering': HeadingNumberingRule(),
+    # 'toc_generation': TocGenerationRule(),
+    'horizontal_rule_removal': HorizontalRuleRemovalRule(),
     
     # 表格规则
     'table_width': TableWidthRule(),
@@ -37,6 +44,7 @@ RULES_REGISTRY = {
     
     # 页面规则
     'page_layout': PageLayoutRule(),
+    # 'header_footer': HeaderFooterRule(),
 }
 
 # 获取所有规则

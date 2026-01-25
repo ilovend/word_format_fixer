@@ -4,7 +4,6 @@ let backendRules = [];
 let presets = {};  // 预设数据将从后端加载
 
 // 初始化
-// 初始化
 document.addEventListener('DOMContentLoaded', function () {
     initializeEventListeners();
 
@@ -19,7 +18,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // 初始化事件监听器
-// 初始化事件监听器
 function initializeEventListeners() {
     // 辅助函数：安全绑定事件
     const safeBind = (id, event, handler) => {
@@ -33,6 +31,7 @@ function initializeEventListeners() {
 
     // 文件选择
     safeBind('selectFile', 'click', selectFile);
+    safeBind('selectFolder', 'click', selectFolder);
     safeBind('clearFile', 'click', clearFile);
 
     // 处理文档
@@ -60,6 +59,9 @@ function initializeEventListeners() {
     safeBind('loadConfig', 'click', loadConfig);
     safeBind('exportConfig', 'click', exportConfig);
     safeBind('importConfig', 'click', importConfig);
+
+    // 批量处理控制
+    safeBind('stopBatch', 'click', stopBatchProcessing);
 }
 
 // 保存当前配置到本地存储
@@ -221,21 +223,113 @@ async function importConfig() {
     }
 }
 
+// 批量处理相关变量
+let fileQueue = [];
+let isBatchProcessing = false;
+let shouldStopBatch = false;
+
 // 选择文件
 async function selectFile() {
     try {
         logDev('选择文件...');
-        const filePath = await window.electronAPI.selectFile();
-        if (filePath) {
-            selectedFilePath = filePath;
-            updateFileInfo();
-            logDev(`文件选择成功: ${filePath}`);
+        // @ts-ignore
+        const filePaths = await window.electronAPI.selectFile();
+        if (filePaths && filePaths.length > 0) {
+            handleSelectedFiles(filePaths);
         }
     } catch (error) {
         console.error('Error selecting file:', error);
         updateStatus('错误: ' + error.message, 'error');
         logDev(`文件选择错误: ${error.message}`);
     }
+}
+
+// 选择文件夹
+async function selectFolder() {
+    try {
+        logDev('选择文件夹...');
+        // @ts-ignore
+        const folderPath = await window.electronAPI.selectFolder();
+        if (folderPath) {
+            logDev(`扫描文件夹: ${folderPath}`);
+            updateStatus('正在扫描文件夹...', 'processing');
+            // @ts-ignore
+            const files = await window.electronAPI.scanFolder(folderPath);
+            if (files && files.length > 0) {
+                handleSelectedFiles(files);
+                logDev(`找到 ${files.length} 个文档`);
+            } else {
+                updateStatus('文件夹中未找到 Word 文档', 'warning');
+            }
+        }
+    } catch (error) {
+        console.error('Error selecting folder:', error);
+        updateStatus('错误: ' + error.message, 'error');
+    }
+}
+
+// 处理选中的文件（单个或多个）
+function handleSelectedFiles(files) {
+    fileQueue = files.map(path => ({
+        path: path,
+        name: path.split(/[\\/]/).pop(),
+        status: 'pending' // pending, processing, success, error
+    }));
+
+    if (fileQueue.length === 1) {
+        // 单文件模式
+        selectedFilePath = fileQueue[0].path;
+        document.getElementById('fileInfoPanel').style.display = 'block';
+        document.getElementById('batchQueuePanel').style.display = 'none';
+        updateFileInfo();
+        updateStatus(`已选择文件: ${fileQueue[0].name}`);
+    } else {
+        // 批量模式
+        selectedFilePath = ''; // 清空单选路径
+        document.getElementById('filePath').textContent = `已选择 ${fileQueue.length} 个文件`;
+        document.getElementById('processFile').disabled = false;
+
+        // 显示队列面板
+        document.getElementById('batchQueuePanel').style.display = 'block';
+        updateQueueUI();
+        updateStatus(`已加入 ${fileQueue.length} 个文件到队列`);
+    }
+
+    // 显示清除按钮
+    document.getElementById('clearFile').style.display = 'inline-block';
+}
+
+// 更新队列UI
+function updateQueueUI() {
+    const list = document.getElementById('fileQueueList');
+    const countSpan = document.getElementById('queueCount');
+    countSpan.textContent = fileQueue.length;
+
+    // 更新进度条
+    const processed = fileQueue.filter(f => f.status === 'success' || f.status === 'error').length;
+    const progress = fileQueue.length > 0 ? Math.round((processed / fileQueue.length) * 100) : 0;
+    document.getElementById('batchProgressBar').style.width = `${progress}%`;
+    document.getElementById('batchProgress').textContent = `${progress}%`;
+
+    // 重新渲染列表（简单全量刷新，性能尚可）
+    list.innerHTML = '';
+    fileQueue.forEach(file => {
+        const item = document.createElement('div');
+        item.className = `queue-item ${file.status}`;
+
+        let iconClass = 'icon-pending';
+        if (file.status === 'processing') iconClass = 'icon-processing';
+        else if (file.status === 'success') iconClass = 'icon-success';
+        else if (file.status === 'error') iconClass = 'icon-error';
+
+        item.innerHTML = `
+            <div class="queue-item-name" title="${file.path}">${file.name}</div>
+            <div class="queue-item-status">
+                <span class="${iconClass}"></span>
+            </div>
+        `;
+        list.appendChild(item);
+    });
 }
 
 // 清除文件选择
@@ -261,28 +355,44 @@ function updateFileInfo() {
     }
 }
 
-// 处理文档
-async function processFile() {
-    if (!selectedFilePath) {
-        updateStatus('请先选择要处理的文档', 'warning');
-        return;
+// 停止批量处理
+function stopBatchProcessing() {
+    if (isBatchProcessing) {
+        shouldStopBatch = true;
+        updateStatus('正在停止处理...', 'warning');
     }
+}
 
+// 处理文档 (支持批量)
+async function processFile() {
     const enabledRules = getEnabledRules();
     if (enabledRules.length === 0) {
         updateStatus('请至少启用一个规则', 'warning');
         return;
     }
 
+    if (fileQueue.length > 1) {
+        // 批量执行模式
+        await processBatchQueue(enabledRules);
+        return;
+    }
+
+    // 单文件模式 (原有逻辑)
+    if (!selectedFilePath && fileQueue.length === 0) {
+        updateStatus('请先选择要处理的文档', 'warning');
+        return;
+    }
+
+    // 兼容单文件逻辑
+    const targetFile = selectedFilePath || fileQueue[0].path;
+
     updateStatus('正在处理...', 'processing');
     showProgressBar();
-    logDev('开始处理文档...');
-    logDev(`文档路径: ${selectedFilePath}`);
-    logDev(`启用的规则数量: ${enabledRules.length}`);
+    logDev(`开始处理文档: ${targetFile}`);
 
     try {
-        // 发送请求到后端
-        const result = await window.electronAPI.processDocument(selectedFilePath, enabledRules);
+        // @ts-ignore
+        const result = await window.electronAPI.processDocument(targetFile, enabledRules);
         logDev(`处理结果: ${JSON.stringify(result)}`);
 
         hideProgressBar();
@@ -293,27 +403,103 @@ async function processFile() {
             updateStatus('处理完成，保存失败', 'error');
         }
 
-        // 显示详细结果
         displayResult(result);
     } catch (error) {
-        console.error('Error processing document:', error);
-        hideProgressBar();
+        handleProcessError(error);
+    }
+}
 
-        let errorMessage = '处理错误';
-        if (error.message) {
-            if (error.message.includes('connect')) {
-                errorMessage = `无法连接到后端服务: ${error.message}`;
-            } else if (error.message.includes('permission')) {
-                errorMessage = `权限不足: ${error.message}`;
-            } else {
-                errorMessage = `处理错误: ${error.message}`;
-            }
+// 批量处理队列逻辑
+async function processBatchQueue(enabledRules) {
+    if (isBatchProcessing) return;
+
+    isBatchProcessing = true;
+    shouldStopBatch = false;
+
+    // UI状态更新
+    document.getElementById('processFile').style.display = 'none';
+    const stopBtn = document.getElementById('stopBatch');
+    if (stopBtn) stopBtn.style.display = 'inline-block';
+
+
+    let successCount = 0;
+    let failCount = 0;
+
+    logDev(`开始批量处理 ${fileQueue.length} 个文件`);
+
+    for (let i = 0; i < fileQueue.length; i++) {
+        if (shouldStopBatch) {
+            logDev('批量处理被用户停止');
+            updateStatus('批量处理已停止', 'warning');
+            break;
         }
 
-        updateStatus(errorMessage, 'error');
-        document.getElementById('result').textContent = errorMessage;
-        logDev(`处理错误: ${error.message || error}`);
+        const file = fileQueue[i];
+        if (file.status === 'success') continue; // 跳过已成功的
+
+        // 更新状态为处理中
+        file.status = 'processing';
+        updateQueueUI();
+        updateStatus(`正在处理 (${i + 1}/${fileQueue.length}): ${file.name}`, 'processing');
+
+        // 滚动到当前项
+        const queueList = document.getElementById('fileQueueList');
+        if (queueList && queueList.children[i]) {
+            queueList.children[i].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        try {
+            // @ts-ignore
+            const result = await window.electronAPI.processDocument(file.path, enabledRules);
+
+            if (result.save_success) {
+                file.status = 'success';
+                successCount++;
+            } else {
+                file.status = 'error';
+                failCount++;
+                logDev(`保存失败: ${file.name}`);
+            }
+        } catch (error) {
+            file.status = 'error';
+            failCount++;
+            console.error(`处理失败 ${file.name}:`, error);
+        }
+
+        // 更新UI
+        updateQueueUI();
     }
+
+    // 结束处理
+    isBatchProcessing = false;
+    document.getElementById('processFile').style.display = 'inline-block';
+    document.getElementById('stopBatch').style.display = 'none';
+
+    if (shouldStopBatch) {
+        updateStatus(`已停止。成功: ${successCount}, 失败: ${failCount}`, 'warning');
+    } else {
+        updateStatus(`批量处理完成！成功: ${successCount}, 失败: ${failCount}`, 'success');
+    }
+}
+
+function handleProcessError(error) {
+    console.error('Error processing document:', error);
+    hideProgressBar();
+
+    let errorMessage = '处理错误';
+    if (error.message) {
+        if (error.message.includes('connect')) {
+            errorMessage = `无法连接到后端服务: ${error.message}`;
+        } else if (error.message.includes('permission')) {
+            errorMessage = `权限不足: ${error.message}`;
+        } else {
+            errorMessage = `处理错误: ${error.message}`;
+        }
+    }
+
+    updateStatus(errorMessage, 'error');
+    document.getElementById('result').textContent = errorMessage;
+    logDev(`处理错误: ${error.message || error}`);
 }
 
 // 获取启用的规则
@@ -362,19 +548,23 @@ function updateRuleCounts() {
     const totalRules = document.querySelectorAll('.rule-toggle').length;
     const enabledRules = document.querySelectorAll('.rule-toggle:checked').length;
 
-    document.getElementById('totalRules').textContent = totalRules;
-    document.getElementById('enabledRules').textContent = enabledRules;
+    const totalEl = document.getElementById('totalRules');
+    if (totalEl) totalEl.textContent = totalRules.toString();
+
+    const enabledEl = document.getElementById('enabledRules');
+    if (enabledEl) enabledEl.textContent = enabledRules.toString();
 }
 
 // 选择预设
 function selectPreset(presetId) {
     // 移除所有预设的激活状态
-    document.querySelectorAll('.preset-card').forEach(card => {
-        card.classList.remove('active');
+    document.querySelectorAll('.preset-item').forEach(item => {
+        item.classList.remove('active');
     });
 
     // 激活当前预设
-    document.querySelector(`[data-preset="${presetId}"]`).classList.add('active');
+    const current = document.querySelector(`.preset-item[data-preset="${presetId}"]`);
+    if (current) current.classList.add('active');
 
     // 根据预设设置规则
     applyPreset(presetId);
@@ -499,16 +689,15 @@ function handleDrop(e) {
     e.stopPropagation();
     document.getElementById('dropZone').classList.remove('active');
 
-    if (e.dataTransfer.files.length > 0) {
-        const file = e.dataTransfer.files[0];
-        if (file.name.endsWith('.docx')) {
-            selectedFilePath = file.path;
-            updateFileInfo();
-            logDev(`文件拖拽: ${file.path}`);
-        } else {
-            updateStatus('错误: 请选择.docx文件', 'error');
-            logDev(`文件类型错误: ${file.name}`);
-        }
+    const filePaths = Array.from(e.dataTransfer.files)
+        .filter(f => f.name.toLowerCase().endsWith('.docx'))
+        .map(f => f.path);
+
+    if (filePaths.length > 0) {
+        handleSelectedFiles(filePaths);
+        logDev(`文件拖拽: ${filePaths.length} 个文件`);
+    } else {
+        updateStatus('请拖拽 Word 文档 (.docx)', 'error');
     }
 }
 
@@ -581,14 +770,76 @@ async function fetchPresetsFromBackend() {
 }
 
 // 更新预设UI
+// 切换开发者日志及预设UI更新
+function toggleDevLog() {
+    const panel = document.getElementById('devLogPanel');
+    if (panel) {
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+// 更新预设UI - 渲染侧边栏列表
 function updatePresetUI() {
-    // 这里可以添加代码来更新预设UI
-    // 例如，更新预设卡片的显示
+    const presetList = document.querySelector('.preset-list');
+    if (!presetList) return;
+
+    presetList.innerHTML = '';
+
+    // 渲染默认预设
+    if (presets['default']) {
+        renderPresetItem('default', presets['default'], presetList);
+    }
+
+    // 渲染其他预设
+    Object.keys(presets).forEach(id => {
+        if (id !== 'default') {
+            renderPresetItem(id, presets[id], presetList);
+        }
+    });
+
     logDev('预设UI已更新');
 
     // 自动应用默认预设
-    applyPreset('default');
-    logDev('自动应用默认预设');
+    if (!document.querySelector('.preset-item.active')) {
+        selectPreset('default');
+    }
+}
+
+function renderPresetItem(id, preset, container) {
+    const item = document.createElement('div');
+    item.className = 'preset-item';
+    item.dataset.preset = id;
+
+    const isStandard = ['default', 'academic', 'business', 'bid'].includes(id);
+    const icon = isStandard ? '📄' : '⚙️';
+
+    item.innerHTML = `
+        <span class="preset-icon">${icon}</span>
+        <div class="preset-info">
+            <span class="preset-name">${preset.name}</span>
+            <span class="preset-desc">${preset.description || '无描述'}</span>
+        </div>
+        <div class="preset-actions">
+           <button class="icon-btn edit-preset" title="编辑">✏️</button>
+           ${id !== 'default' ? `<button class="icon-btn delete-preset" title="删除">🗑️</button>` : ''}
+        </div>
+    `;
+
+    // 绑定点击事件 (选择预设)
+    item.addEventListener('click', (e) => {
+        if (!e.target.closest('.icon-btn')) {
+            selectPreset(id);
+        }
+    });
+
+    // 绑定按钮事件
+    const editBtn = item.querySelector('.edit-preset');
+    if (editBtn) editBtn.onclick = () => openPresetEditor(id);
+
+    const deleteBtn = item.querySelector('.delete-preset');
+    if (deleteBtn) deleteBtn.onclick = () => confirmDeletePreset(id);
+
+    container.appendChild(item);
 }
 
 // 生成规则UI
@@ -652,32 +903,42 @@ function generateRuleUI() {
             const ruleItem = document.createElement('div');
             ruleItem.className = 'rule-item';
 
-            // 生成规则控件HTML
-            let ruleControlsHtml = `
-                    <div class="rule-info">
-                        <h4>${rule.name}</h4>
-                        <p>${rule.description}</p>
-                    </div>
-                    <div class="rule-controls">
-                        <label class="toggle-switch">
-                            <input type="checkbox" class="rule-toggle" data-rule="${rule.id}">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>`;
+            // 规则头部 (Info + Switch)
+            const ruleHeader = document.createElement('div');
+            ruleHeader.className = 'rule-header';
 
-            // 生成参数配置HTML - 使用动态表单生成器
+            const ruleInfo = document.createElement('div');
+            ruleInfo.className = 'rule-info';
+            ruleInfo.innerHTML = `
+                <h4>${rule.name}</h4>
+                <p>${rule.description}</p>
+            `;
+
+            const ruleControls = document.createElement('div');
+            ruleControls.className = 'rule-controls';
+            ruleControls.innerHTML = `
+                <label class="toggle-switch">
+                    <input type="checkbox" class="rule-toggle" data-rule="${rule.id}">
+                    <span class="toggle-slider"></span>
+                </label>
+            `;
+
+            ruleHeader.appendChild(ruleInfo);
+            ruleHeader.appendChild(ruleControls);
+            ruleItem.appendChild(ruleHeader);
+
+            // 规则参数 (Params) -> 只有当勾选时(逻辑在css/js控制)或一直显示
+            // 现有的逻辑是始终生成，但可以通过 CSS 控制显示/隐藏，或者一直显示
+            // 新设计中，我们一直显示参数区域
             let paramsHtml = '';
             if (window.FormGenerator && (rule.param_schema || rule.params)) {
-                // 使用新的 schema-based 表单生成器
                 paramsHtml = window.FormGenerator.generateRuleParamsPanel(rule);
             } else if (rule.params && Object.keys(rule.params).length > 0) {
-                // 回退：使用旧的内联生成方式
                 paramsHtml = `
-                        <div class="rule-params" style="margin-top: 10px; padding: 10px; background-color: #f8f9fa; border-radius: 4px; border: 1px solid #e0e0e0;">
-                            <h5 style="margin: 0 0 10px 0; font-size: 14px; color: #666;">参数配置</h5>
-                            <div class="params-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px;">`;
+                        <div class="rule-params">
+                            <h5 style="margin: 0 0 12px 0; font-size: 12px; color: #94a3b8; text-transform: uppercase; font-weight: 600;">参数配置</h5>
+                            <div class="params-grid">`;
 
-                // 为每个参数生成配置控件
                 for (const [paramName, paramValue] of Object.entries(rule.params)) {
                     paramsHtml += generateParamControl(rule.id, paramName, paramValue);
                 }
@@ -685,8 +946,23 @@ function generateRuleUI() {
                 paramsHtml += `</div></div>`;
             }
 
-            // 组合HTML
-            ruleItem.innerHTML = ruleControlsHtml + paramsHtml;
+            if (paramsHtml) {
+                const paramsContainer = document.createElement('div');
+                paramsContainer.innerHTML = paramsHtml;
+                // 暂时默认显示，或者可以加上逻辑：仅当 toggle checked 时显示
+                ruleItem.appendChild(paramsContainer);
+
+                // 简单的显隐逻辑绑定
+                setTimeout(() => {
+                    const toggle = ruleControls.querySelector('input');
+                    const pContainer = paramsContainer; // closure capture
+                    const updateVisibility = () => {
+                        pContainer.style.display = toggle.checked ? 'block' : 'none';
+                    };
+                    toggle.addEventListener('change', updateVisibility);
+                    updateVisibility(); // init
+                }, 0);
+            }
 
             content.appendChild(ruleItem);
         });
@@ -1128,7 +1404,7 @@ async function saveNewPreset() {
         presets[presetId] = newPreset;
 
         // 更新预设UI
-        addPresetCard(presetId, newPreset);
+        updatePresetUI();
 
         closePresetEditor();
         logDev(`新建预设成功: ${presetId}`);
@@ -1171,7 +1447,7 @@ async function savePreset(presetId) {
         presets[presetId] = updatedPreset;
 
         // 更新预设UI
-        updatePresetCard(presetId, updatedPreset);
+        updatePresetUI();
 
         closePresetEditor();
         logDev(`更新预设成功: ${presetId}`);
@@ -1193,55 +1469,7 @@ function getSelectedRulesFromEditor() {
     return selectedRules;
 }
 
-function addPresetCard(presetId, preset) {
-    const presetCards = document.querySelector('.preset-cards');
-
-    const presetCard = document.createElement('div');
-    presetCard.className = 'preset-card';
-    presetCard.dataset.preset = presetId;
-
-    presetCard.innerHTML = `
-                <div class="preset-header">
-                    <h4>${preset.name}</h4>
-                    <div class="preset-actions">
-                        <button class="btn btn-sm btn-secondary" onclick="openPresetEditor('${presetId}')">编辑</button>
-                        <button class="btn btn-sm btn-danger" onclick="confirmDeletePreset('${presetId}')">删除</button>
-                    </div>
-                </div>
-                <p>${preset.description}</p>
-            `;
-
-    // 添加点击事件
-    presetCard.addEventListener('click', function () {
-        selectPreset(this.dataset.preset);
-    });
-
-    presetCards.appendChild(presetCard);
-    logDev(`添加预设卡片: ${presetId}`);
-}
-
-function updatePresetCard(presetId, preset) {
-    const presetCard = document.querySelector(`[data-preset="${presetId}"]`);
-    if (presetCard) {
-        presetCard.innerHTML = `
-                    <div class="preset-header">
-                        <h4>${preset.name}</h4>
-                        <div class="preset-actions">
-                            <button class="btn btn-sm btn-secondary" onclick="openPresetEditor('${presetId}')">编辑</button>
-                            <button class="btn btn-sm btn-danger" onclick="confirmDeletePreset('${presetId}')">删除</button>
-                        </div>
-                    </div>
-                    <p>${preset.description}</p>
-                `;
-
-        // 重新添加点击事件
-        presetCard.addEventListener('click', function () {
-            selectPreset(this.dataset.preset);
-        });
-
-        logDev(`更新预设卡片: ${presetId}`);
-    }
-}
+// (Obsolete functions addPresetCard/updatePresetCard removed)
 
 function confirmDeletePreset(presetId) {
     if (confirm(`确定要删除预设 "${presets[presetId]?.name}" 吗？`)) {
@@ -1263,7 +1491,7 @@ async function deletePreset(presetId) {
         delete presets[presetId];
 
         // 更新预设UI
-        removePresetCard(presetId);
+        updatePresetUI();
 
         logDev(`删除预设成功: ${presetId}`);
     } catch (error) {
@@ -1273,13 +1501,7 @@ async function deletePreset(presetId) {
     }
 }
 
-function removePresetCard(presetId) {
-    const presetCard = document.querySelector(`[data-preset="${presetId}"]`);
-    if (presetCard) {
-        presetCard.remove();
-        logDev(`移除预设卡片: ${presetId}`);
-    }
-}
+// (Obsolete function removePresetCard removed)
 
 // 点击模态框外部关闭
 window.onclick = function (event) {

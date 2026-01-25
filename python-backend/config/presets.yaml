@@ -94,86 +94,11 @@ presets:
   business:
     description: 适合企业正式文档
     name: 企业公文规范
-    rules:
-      font_color:
-        enabled: true
-        parameters:
-          text_color: '000000'
-      font_standard:
-        enabled: true
-        parameters:
-          chinese_font: 黑体
-          font_size_body: 14
-          title_font: 黑体
-          western_font: Arial
-      list_numbering:
-        enabled: true
-      paragraph_spacing:
-        enabled: true
-        parameters:
-          line_spacing: 1.5
-          space_after: 6
-          space_before: 0
-      table_border:
-        enabled: true
-        parameters:
-          add_table_header_format: true
-          border_color: '000000'
-          border_size: 4
-          table_header_bg_color: E3E3E3
-      table_width:
-        enabled: true
-        parameters:
-          auto_adjust_columns: true
-          table_width_percent: 95
-      title_bold:
-        enabled: true
+    rules: {}
   comprehensive:
     description: 包含所有规则
     name: 全面配置
-    rules:
-      font_color:
-        enabled: true
-        parameters:
-          text_color: '000000'
-      font_standard:
-        enabled: true
-        parameters:
-          chinese_font: 宋体
-          font_size_body: 12
-          title_font: 黑体
-          western_font: Arial
-      list_numbering:
-        enabled: true
-      page_layout:
-        enabled: true
-        parameters:
-          page_height_cm: 29.7
-          page_margin_bottom_cm: 2.54
-          page_margin_left_cm: 2.54
-          page_margin_right_cm: 2.54
-          page_margin_top_cm: 2.54
-          page_width_cm: 21.0
-      paragraph_spacing:
-        enabled: true
-        parameters:
-          line_spacing: 1.5
-          space_after: 6
-          space_before: 0
-      table_border:
-        enabled: true
-        parameters:
-          add_table_header_format: true
-          border_color: '000000'
-          border_size: 4
-          table_header_bg_color: E3E3E3
-      table_width:
-        enabled: true
-        parameters:
-          auto_adjust_columns: true
-          table_width_percent: 95
-      title_bold:
-        enabled: true
+    rules: {}
   default:
     description: 包含所有常用规则的标准配置
     name: 默认配置
@@ -242,18 +167,10 @@ presets:
     description: 仅包含必要规则
     name: 最小配置
     rules:
-      font_color:
+      FontColorRule:
         enabled: true
-        parameters:
-          text_color: '000000'
-      list_numbering:
+      FontNameRule:
         enabled: true
-      paragraph_spacing:
-        enabled: true
-        parameters:
-          line_spacing: 1.5
-          space_after: 6
-          space_before: 0
   product_manual:
     description: 适合产品说明书的格式
     name: 产品说明书格式
@@ -304,133 +221,21 @@ presets:
     description: 适合各类报告的格式
     name: 报告模板
     rules:
-      font_color:
+      FontColorRule:
         enabled: true
-        parameters:
-          text_color: '000000'
-      font_standard:
-        enabled: true
-        parameters:
-          chinese_font: 仿宋
-          font_size_body: 12
-          title_font: 黑体
-          western_font: Arial
-      list_numbering:
-        enabled: true
-      page_layout:
-        enabled: true
-        parameters:
-          page_height_cm: 29.7
-          page_margin_bottom_cm: 2.54
-          page_margin_left_cm: 3.18
-          page_margin_right_cm: 2.54
-          page_margin_top_cm: 2.54
-          page_width_cm: 21.0
-      paragraph_spacing:
-        enabled: true
-        parameters:
-          line_spacing: 1.5
-          space_after: 6
-          space_before: 0
-      table_border:
-        enabled: true
-        parameters:
-          add_table_header_format: true
-          border_color: '000000'
-          border_size: 4
-          table_header_bg_color: D9E1F2
-      table_width:
-        enabled: true
-        parameters:
-          auto_adjust_columns: true
-          table_width_percent: 90
-      title_bold:
+      FontNameRule:
         enabled: true
   resume:
     description: 适合个人简历的格式
     name: 个人简历格式
-    rules:
-      font_color:
-        enabled: true
-        parameters:
-          text_color: '000000'
-      font_standard:
-        enabled: true
-        parameters:
-          chinese_font: 微软雅黑
-          font_size_body: 12
-          title_font: 黑体
-          western_font: Arial
-      page_layout:
-        enabled: true
-        parameters:
-          page_height_cm: 29.7
-          page_margin_bottom_cm: 2.0
-          page_margin_left_cm: 2.0
-          page_margin_right_cm: 2.0
-          page_margin_top_cm: 2.0
-          page_width_cm: 21.0
-      paragraph_spacing:
-        enabled: true
-        parameters:
-          line_spacing: 1.2
-          space_after: 3
-          space_before: 0
-      title_bold:
-        enabled: true
-        parameters:
-          bold: true
+    rules: {}
   technical:
     description: 适合技术文档的格式
     name: 技术文档格式
     rules:
-      font_color:
+      FontColorRule:
         enabled: true
-        parameters:
-          text_color: '000000'
-      font_standard:
-        enabled: true
-        parameters:
-          chinese_font: 宋体
-          font_size_body: 11
-          title_font: 黑体
-          western_font: Courier New
-      list_numbering:
-        enabled: true
-      page_layout:
-        enabled: true
-        parameters:
-          page_height_cm: 29.7
-          page_margin_bottom_cm: 2.54
-          page_margin_left_cm: 2.54
-          page_margin_right_cm: 2.54
-          page_margin_top_cm: 2.54
-          page_width_cm: 21.0
-      paragraph_spacing:
-        enabled: true
-        parameters:
-          line_spacing: 1.5
-          space_after: 6
-          space_before: 0
-      table_border:
-        enabled: true
-        parameters:
-          add_table_header_format: true
-          border_color: '000000'
-          border_size: 4
-          table_header_bg_color: F0F0F0
-      table_width:
-        enabled: true
-        parameters:
-          auto_adjust_columns: true
-          table_width_percent: 100
-      title_bold:
-        enabled: true
-  test_preset:
-    description: 这是一个测试预设
-    name: 测试预设
-    rules:
-      font_standard:
+      FontNameRule:
         enabled: true
 rule_defaults:
   font_color:

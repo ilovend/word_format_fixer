@@ -10,5 +10,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     savePreset: (presetId, presetData) => ipcRenderer.invoke('save-preset', presetId, presetData),
     deletePreset: (presetId) => ipcRenderer.invoke('delete-preset', presetId),
     importConfigFile: () => ipcRenderer.invoke('importConfigFile'),
-    readFile: (filePath) => ipcRenderer.invoke('readFile', filePath)
+    readFile: (filePath) => ipcRenderer.invoke('readFile', filePath),
+    selectFolder: () => ipcRenderer.invoke('select-folder'),
+    scanFolder: (folderPath) => ipcRenderer.invoke('scan-folder', folderPath)
 });

@@ -125,6 +125,13 @@ class PythonProcessManager {
 
     // 处理后端响应
     handleResponse(line) {
+        // Log raw output for debugging
+        if (line.length > 500) {
+            console.log(`[Python Response Raw] ${line.substring(0, 500)}... (truncated)`);
+        } else {
+            console.log(`[Python Response Raw] ${line}`);
+        }
+
         try {
             const response = JSON.parse(line);
 
@@ -193,6 +200,11 @@ class PythonProcessManager {
             command: command,
             data: data
         }) + '\n';
+
+        console.log(`[Python Request] Command: ${command}, ID: ${requestId}`);
+        if (data && Object.keys(data).length > 0) {
+            console.log(`[Python Request Data] ${JSON.stringify(data).substring(0, 200)}${JSON.stringify(data).length > 200 ? '...' : ''}`);
+        }
 
         this.pendingRequests.set(requestId, { resolve, reject });
 
@@ -395,10 +407,26 @@ ipcMain.handle('configure-rules', async (event, configs) => {
 ipcMain.handle('select-file', async () => {
     try {
         const result = await dialog.showOpenDialog({
-            properties: ['openFile'],
+            properties: ['openFile', 'multiSelections'],
             filters: [
                 { name: 'Word Documents', extensions: ['docx'] }
             ]
+        });
+
+        if (!result.canceled && result.filePaths.length > 0) {
+            return result.filePaths;
+        }
+        return [];
+    } catch (error) {
+        console.error('Error selecting file:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('select-folder', async () => {
+    try {
+        const result = await dialog.showOpenDialog({
+            properties: ['openDirectory']
         });
 
         if (!result.canceled && result.filePaths.length > 0) {
@@ -406,7 +434,44 @@ ipcMain.handle('select-file', async () => {
         }
         return null;
     } catch (error) {
-        console.error('Error selecting file:', error);
+        console.error('Error selecting folder:', error);
+        throw error;
+    }
+});
+
+// 扫描文件夹中的docx文件
+ipcMain.handle('scan-folder', async (event, folderPath) => {
+    try {
+        const files = [];
+
+        async function scan(dir) {
+            try {
+                const items = await fs.promises.readdir(dir);
+                for (const item of items) {
+                    const fullPath = path.join(dir, item);
+                    try {
+                        const stat = await fs.promises.stat(fullPath);
+                        if (stat.isDirectory()) {
+                            await scan(fullPath);
+                        } else if (stat.isFile() && item.toLowerCase().endsWith('.docx') && !item.startsWith('~$')) {
+                            files.push(fullPath);
+                        }
+                    } catch (e) {
+                        // ignore access errors
+                    }
+                }
+            } catch (e) {
+                // ignore dir read errors
+            }
+        }
+
+        if (fs.existsSync(folderPath)) {
+            await scan(folderPath);
+        }
+
+        return files;
+    } catch (error) {
+        console.error('Error scanning folder:', error);
         throw error;
     }
 });

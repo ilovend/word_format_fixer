@@ -10,160 +10,132 @@
 </head>
 
 <body>
-    <div class="container">
-        <!-- 左侧导航 - 预设管理 -->
-        <div class="left-panel">
-            <h2>预设管理</h2>
-
-            <div class="preset-section">
-                <div class="preset-controls">
-                    <button class="btn btn-primary" onclick="openPresetEditor()">新建预设</button>
-                </div>
-                <h3>标准场景</h3>
-                <div class="preset-cards">
-                    <div class="preset-card active" data-preset="default">
-                        <div class="preset-header">
-                            <h4>默认配置</h4>
-                            <div class="preset-actions">
-                                <button class="btn btn-sm btn-secondary"
-                                    onclick="openPresetEditor('default')">编辑</button>
-                                <button class="btn btn-sm btn-danger"
-                                    onclick="confirmDeletePreset('default')">删除</button>
-                            </div>
-                        </div>
-                        <p>包含所有常用规则的标准配置</p>
-                    </div>
-                    <div class="preset-card" data-preset="minimal">
-                        <div class="preset-header">
-                            <h4>最小配置</h4>
-                            <div class="preset-actions">
-                                <button class="btn btn-sm btn-secondary"
-                                    onclick="openPresetEditor('minimal')">编辑</button>
-                                <button class="btn btn-sm btn-danger"
-                                    onclick="confirmDeletePreset('minimal')">删除</button>
-                            </div>
-                        </div>
-                        <p>仅包含必要规则</p>
-                    </div>
-                    <div class="preset-card" data-preset="comprehensive">
-                        <div class="preset-header">
-                            <h4>全面配置</h4>
-                            <div class="preset-actions">
-                                <button class="btn btn-sm btn-secondary"
-                                    onclick="openPresetEditor('comprehensive')">编辑</button>
-                                <button class="btn btn-sm btn-danger"
-                                    onclick="confirmDeletePreset('comprehensive')">删除</button>
-                            </div>
-                        </div>
-                        <p>包含所有规则</p>
-                    </div>
-                    <div class="preset-card" data-preset="academic">
-                        <div class="preset-header">
-                            <h4>学术论文格式</h4>
-                            <div class="preset-actions">
-                                <button class="btn btn-sm btn-secondary"
-                                    onclick="openPresetEditor('academic')">编辑</button>
-                                <button class="btn btn-sm btn-danger"
-                                    onclick="confirmDeletePreset('academic')">删除</button>
-                            </div>
-                        </div>
-                        <p>符合学术论文的格式规范</p>
-                    </div>
-                    <div class="preset-card" data-preset="business">
-                        <div class="preset-header">
-                            <h4>企业公文规范</h4>
-                            <div class="preset-actions">
-                                <button class="btn btn-sm btn-secondary"
-                                    onclick="openPresetEditor('business')">编辑</button>
-                                <button class="btn btn-sm btn-danger"
-                                    onclick="confirmDeletePreset('business')">删除</button>
-                            </div>
-                        </div>
-                        <p>适合企业正式文档</p>
-                    </div>
-                    <div class="preset-card" data-preset="bid">
-                        <div class="preset-header">
-                            <h4>竞标书标准</h4>
-                            <div class="preset-actions">
-                                <button class="btn btn-sm btn-secondary" onclick="openPresetEditor('bid')">编辑</button>
-                                <button class="btn btn-sm btn-danger" onclick="confirmDeletePreset('bid')">删除</button>
-                            </div>
-                        </div>
-                        <p>专业竞标文档格式</p>
-                    </div>
-                </div>
+    <div class="app-layout">
+        <!-- 侧边栏：预设与全局配置 -->
+        <aside class="sidebar">
+            <div class="brand">
+                <h1>Word Format Fixer</h1>
             </div>
 
-            <div class="file-section">
-                <h3>文件操作</h3>
-                <div class="file-buttons">
-                    <button class="btn btn-primary" id="selectFile">选择Word文档</button>
-                    <button class="btn btn-secondary" id="clearFile">清除选择</button>
-                </div>
-
-                <div class="drop-zone" id="dropZone">
-                    <h3>拖拽文件到此处</h3>
-                    <p>或点击上方按钮选择文件</p>
-                </div>
-            </div>
-
-            <div class="file-section">
-                <h3>配置管理</h3>
-                <div class="file-buttons">
-                    <button class="btn btn-primary" id="saveConfig">保存当前配置</button>
-                    <button class="btn btn-secondary" id="loadConfig">加载配置</button>
-                    <button class="btn btn-secondary" id="exportConfig">导出配置</button>
-                    <button class="btn btn-secondary" id="importConfig">导入配置</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 中间主区 - 规则配置 -->
-        <div class="main-panel">
-            <h2>规则配置</h2>
-
-            <!-- 规则分类将由JavaScript动态生成 -->
-        </div>
-
-        <!-- 右侧面板 - 执行与报告 -->
-        <div class="right-panel">
-            <!-- 文件信息 -->
-            <div class="file-info-section">
-                <h2>文件信息</h2>
-                <div class="file-path" id="filePath">未选择文件</div>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-value" id="totalRules">0</div>
-                        <div class="stat-label">总规则数</div>
+            <div class="sidebar-section">
+                <h3>场景预设</h3>
+                <div class="preset-list">
+                    <div class="preset-item active" data-preset="default">
+                        <span class="preset-icon">📄</span>
+                        <div class="preset-info">
+                            <span class="preset-name">默认配置</span>
+                            <span class="preset-desc">标准通用规则</span>
+                        </div>
+                        <div class="preset-actions">
+                            <button class="icon-btn edit-preset" title="编辑"
+                                onclick="openPresetEditor('default')">✏️</button>
+                        </div>
                     </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="enabledRules">0</div>
-                        <div class="stat-label">启用规则</div>
+                    <!-- 更多预设项将由JS动态管理，这里保留结构示例，实际内容可能由JS渲染或保留静态 -->
+                    <div class="preset-item" data-preset="academic">
+                        <span class="preset-icon">🎓</span>
+                        <div class="preset-info">
+                            <span class="preset-name">学术论文</span>
+                            <span class="preset-desc">毕业论文/期刊格式</span>
+                        </div>
+                        <div class="preset-actions">
+                            <button class="icon-btn edit-preset" title="编辑"
+                                onclick="openPresetEditor('academic')">✏️</button>
+                        </div>
                     </div>
                 </div>
+                <button class="btn btn-outline btn-block mt-10" onclick="openPresetEditor()">+ 新建预设</button>
             </div>
 
-            <!-- 执行控制 -->
-            <div class="execute-section">
-                <button class="execute-btn" id="processFile" disabled>处理文档</button>
-                <div class="progress-bar" style="display: none;">
-                    <div class="progress-fill" style="width: 0%"></div>
+            <div class="sidebar-footer">
+                <button class="btn btn-text" id="importConfig">📥 导入配置</button>
+                <button class="btn btn-text" id="exportConfig">📤 导出配置</button>
+            </div>
+        </aside>
+
+        <!-- 主工作区 -->
+        <main class="content-area">
+            <!-- 顶部工作台：文件操作 -->
+            <section class="workspace-header">
+                <div class="file-drop-area" id="dropZone">
+                    <div class="drop-content">
+                        <div class="drop-icon">📁</div>
+                        <div class="drop-text">
+                            <h3>点击选择或拖拽文件</h3>
+                            <p>支持多文件 (.docx) 或文件夹</p>
+                        </div>
+                        <div class="drop-actions">
+                            <button id="selectFile" class="btn btn-primary">选择文件</button>
+                            <button id="selectFolder" class="btn btn-secondary">选择文件夹</button>
+                            <button id="clearFile" class="btn btn-ghost" style="display: none;">清除</button>
+                        </div>
+                    </div>
+
+                    <!-- 选中的文件/队列信息 -->
+                    <div id="fileInfoPanel" class="file-status-panel" style="display: none;">
+                        <div class="status-row">
+                            <span id="filePath" class="file-path-badge">已选择文件...</span>
+                            <div class="rule-stats">
+                                <span>已启用 <b id="enabledRules">0</b> / <span id="totalRules">0</span> 规则</span>
+                            </div>
+                        </div>
+
+                        <!-- 批量队列 (折叠/展开) -->
+                        <div id="batchQueuePanel" class="batch-queue" style="display: none;">
+                            <div class="queue-header">
+                                <span>处理队列 (<span id="queueCount">0</span>)</span>
+                                <span id="batchProgress">0%</span>
+                            </div>
+                            <div class="progress-track">
+                                <div id="batchProgressBar" class="progress-fill" style="width: 0%"></div>
+                            </div>
+                            <div id="fileQueueList" class="queue-items"></div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </section>
 
-            <!-- 报告与状态 -->
-            <div class="report-section">
-                <h2>执行报告</h2>
-                <div class="status-indicator" id="status"></div>
-                <div class="report-details" id="result"></div>
-
-                <!-- 开发者模式日志窗口 -->
-                <div class="developer-log">
-                    <h4>开发者日志</h4>
-                    <pre id="devLog">等待操作...</pre>
+            <!-- 中部：规则配置 -->
+            <section class="rules-container">
+                <div class="section-header">
+                    <h2>规则配置</h2>
+                    <div class="bg-actions">
+                        <button class="btn btn-sm" id="saveConfig">保存当前配置</button>
+                    </div>
                 </div>
+                <!-- 规则列表容器 -->
+                <div class="main-panel" id="rulesContainer">
+                    <!-- 规则分类将由JavaScript动态生成 -->
+                </div>
+            </section>
+
+            <!-- 结果与日志容器 (隐藏) -->
+            <div id="resultContainer" style="display: none;">
+                <div id="reportStatus"></div>
+                <div id="result"></div>
             </div>
-        </div>
+
+            <!-- 底部：执行栏 -->
+            <section class="action-bar">
+                <div class="status-message">
+                    <div id="status" class="status-text">准备就绪</div>
+                    <div id="progressBarContainer" class="mini-progress" style="display: none;">
+                        <div id="progressBar" class="bar"></div>
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button id="processFile" class="btn btn-xl btn-primary" disabled>开始处理</button>
+                    <button id="stopBatch" class="btn btn-xl btn-danger" style="display: none;">停止处理</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 开发者日志 (隐藏式) -->
+    <div class="dev-log-toggle" onclick="toggleDevLog()">🛠️</div>
+    <div class="developer-log" id="devLogPanel" style="display: none;">
+        <h4>开发者日志</h4>
+        <pre id="devLog">等待操作...</pre>
     </div>
 
     <!-- 动态表单生成器 -->
