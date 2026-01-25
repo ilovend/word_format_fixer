@@ -1,11 +1,14 @@
 from .application_service import (
     DocumentProcessingService,
     ConfigManagementService,
-    RuleManagementService
+    RuleManagementService,
+    ServiceContainer
 )
+from .diff_service import DiffService
 
 __all__ = [
     'DocumentProcessingService',
     'ConfigManagementService',
-    'RuleManagementService'
+    'RuleManagementService',
+    'DiffService'
 ]

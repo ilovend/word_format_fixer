@@ -12,5 +12,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     importConfigFile: () => ipcRenderer.invoke('importConfigFile'),
     readFile: (filePath) => ipcRenderer.invoke('readFile', filePath),
     selectFolder: () => ipcRenderer.invoke('select-folder'),
-    scanFolder: (folderPath) => ipcRenderer.invoke('scan-folder', folderPath)
+    scanFolder: (folderPath) => ipcRenderer.invoke('scan-folder', folderPath),
+    // Diff/对比功能
+    prepareDiff: (documentPath) => ipcRenderer.invoke('prepare-diff', documentPath),
+    generateDiff: (documentPath) => ipcRenderer.invoke('generate-diff', documentPath),
+    getPreview: (documentPath) => ipcRenderer.invoke('get-preview', documentPath)
 });

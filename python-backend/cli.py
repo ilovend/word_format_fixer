@@ -16,13 +16,15 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from services import (
     DocumentProcessingService,
     ConfigManagementService,
-    RuleManagementService
+    RuleManagementService,
+    DiffService
 )
 
 # 全局服务实例
 doc_service = DocumentProcessingService()
 config_service = ConfigManagementService()
 rule_service = RuleManagementService()
+diff_service = DiffService()
 
 
 def get_version() -> str:
@@ -105,6 +107,21 @@ def process_command(command: str, data: Dict[str, Any]) -> Dict[str, Any]:
                 result = rule_service.update_rule_config(rule_id, params)
                 results.append(result)
             return {"status": "success", "results": results}
+        
+        elif command == "prepare-diff":
+            # 准备对比：缓存原始文档
+            file_path = data.get('file_path')
+            return diff_service.prepare_diff(file_path)
+        
+        elif command == "generate-diff":
+            # 生成对比：对比修改后的文档
+            file_path = data.get('file_path')
+            return diff_service.generate_diff(file_path)
+        
+        elif command == "get-preview":
+            # 获取文档HTML预览
+            file_path = data.get('file_path')
+            return diff_service.get_document_preview(file_path)
         
         else:
             return {"error": f"Unknown command: {command}"}

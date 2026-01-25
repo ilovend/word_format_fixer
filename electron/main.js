@@ -524,3 +524,35 @@ ipcMain.handle('get-version', async () => {
         return '1.0.0';
     }
 });
+
+// ==================== Diff/对比功能 ====================
+
+// 准备对比：缓存原始文档
+ipcMain.handle('prepare-diff', async (event, documentPath) => {
+    try {
+        return await callPythonCLI('prepare-diff', { file_path: documentPath });
+    } catch (error) {
+        console.error('Error preparing diff:', error);
+        throw error;
+    }
+});
+
+// 生成对比：对比修改后的文档
+ipcMain.handle('generate-diff', async (event, documentPath) => {
+    try {
+        return await callPythonCLI('generate-diff', { file_path: documentPath });
+    } catch (error) {
+        console.error('Error generating diff:', error);
+        throw error;
+    }
+});
+
+// 获取文档HTML预览
+ipcMain.handle('get-preview', async (event, documentPath) => {
+    try {
+        return await callPythonCLI('get-preview', { file_path: documentPath });
+    } catch (error) {
+        console.error('Error getting preview:', error);
+        throw error;
+    }
+});

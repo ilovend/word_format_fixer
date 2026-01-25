@@ -760,3 +760,138 @@ input:checked+.toggle-slider:before {
     resize: vertical;
     min-height: 60px;
 }
+
+/* ==================== Diff View Styles ==================== */
+.modal-large {
+    max-width: 95vw;
+    width: 1200px;
+    max-height: 90vh;
+}
+
+.diff-stats {
+    display: flex;
+    gap: 12px;
+    margin-right: auto;
+    margin-left: 20px;
+}
+
+.stat-add {
+    color: var(--success);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.stat-del {
+    color: var(--danger);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.diff-body {
+    padding: 0 !important;
+    display: flex;
+    flex-direction: column;
+    height: 60vh;
+    overflow: hidden;
+}
+
+.diff-container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.diff-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.diff-pane:last-child {
+    border-right: none;
+}
+
+.diff-pane-header {
+    padding: 10px 16px;
+    background: var(--bg-app);
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.diff-content {
+    flex: 1;
+    overflow: auto;
+    padding: 16px;
+    font-size: 13px;
+    line-height: 1.6;
+    background: var(--bg-white);
+}
+
+.diff-content p {
+    margin: 0 0 8px 0;
+}
+
+.diff-content h1, .diff-content h2, .diff-content h3 {
+    margin: 16px 0 8px 0;
+}
+
+.diff-content table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 8px 0;
+}
+
+.diff-content td, .diff-content th {
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+}
+
+/* Diff highlighting */
+.diff-add {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.diff-del {
+    background-color: #fee2e2;
+    color: #991b1b;
+    text-decoration: line-through;
+}
+
+.diff-unified {
+    flex: 1;
+    overflow: auto;
+    padding: 16px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    background: #1e293b;
+    color: #e2e8f0;
+}
+
+.diff-unified table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.diff-unified td {
+    padding: 2px 8px;
+    vertical-align: top;
+}
+
+.diff-unified .diff_add {
+    background-color: rgba(16, 185, 129, 0.2);
+}
+
+.diff-unified .diff_sub {
+    background-color: rgba(239, 68, 68, 0.2);
+}
+
+.diff-unified .diff_chg {
+    background-color: rgba(251, 191, 36, 0.2);
+}

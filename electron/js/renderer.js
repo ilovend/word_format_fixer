@@ -34,8 +34,8 @@ function initializeEventListeners() {
     safeBind('selectFolder', 'click', selectFolder);
     safeBind('clearFile', 'click', clearFile);
 
-    // 处理文档
-    safeBind('processFile', 'click', processFile);
+    // 处理文档（使用带对比功能的版本）
+    safeBind('processFile', 'click', processFileWithDiff);
 
     // 预设选择
     document.querySelectorAll('.preset-card').forEach(card => {
@@ -1506,7 +1506,153 @@ async function deletePreset(presetId) {
 // 点击模态框外部关闭
 window.onclick = function (event) {
     const modal = document.getElementById('presetModal');
+    const diffModal = document.getElementById('diffModal');
     if (event.target == modal) {
         closePresetEditor();
+    }
+    if (event.target == diffModal) {
+        closeDiffModal();
+    }
+}
+
+// ==================== Diff/对比视图功能 ====================
+
+let diffViewMode = 'split'; // 'split' 或 'unified'
+
+/**
+ * 打开对比视图模态框
+ * @param {Object} diffData - 对比数据
+ */
+function openDiffModal(diffData) {
+    const modal = document.getElementById('diffModal');
+    const originalContent = document.getElementById('originalContent');
+    const modifiedContent = document.getElementById('modifiedContent');
+    const diffUnified = document.getElementById('diffUnified');
+    const addCount = document.getElementById('addCount');
+    const delCount = document.getElementById('delCount');
+
+    // 填充内容
+    originalContent.innerHTML = diffData.original_html || '<p>无内容</p>';
+    modifiedContent.innerHTML = diffData.modified_html || '<p>无内容</p>';
+    diffUnified.innerHTML = diffData.diff_html || '';
+
+    // 更新统计
+    if (diffData.stats) {
+        addCount.textContent = diffData.stats.additions || 0;
+        delCount.textContent = diffData.stats.deletions || 0;
+    }
+
+    // 显示模态框
+    modal.style.display = 'flex';
+    diffViewMode = 'split';
+    updateDiffViewMode();
+
+    logDev('打开对比视图');
+}
+
+/**
+ * 关闭对比视图模态框
+ */
+function closeDiffModal() {
+    const modal = document.getElementById('diffModal');
+    modal.style.display = 'none';
+}
+
+/**
+ * 切换对比视图模式
+ */
+function toggleDiffViewMode() {
+    diffViewMode = diffViewMode === 'split' ? 'unified' : 'split';
+    updateDiffViewMode();
+}
+
+/**
+ * 更新对比视图模式显示
+ */
+function updateDiffViewMode() {
+    const diffContainer = document.querySelector('.diff-container');
+    const diffUnified = document.getElementById('diffUnified');
+    const toggleBtn = document.getElementById('toggleDiffView');
+
+    if (diffViewMode === 'split') {
+        diffContainer.style.display = 'flex';
+        diffUnified.style.display = 'none';
+        toggleBtn.textContent = '切换到统一视图';
+    } else {
+        diffContainer.style.display = 'none';
+        diffUnified.style.display = 'block';
+        toggleBtn.textContent = '切换到分栏视图';
+    }
+}
+
+// 绑定切换按钮事件
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('toggleDiffView');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', toggleDiffViewMode);
+    }
+});
+
+/**
+ * 处理文档并显示对比（增强版processFile）
+ */
+async function processFileWithDiff() {
+    const enabledRules = getEnabledRules();
+    if (enabledRules.length === 0) {
+        updateStatus('请至少启用一个规则', 'warning');
+        return;
+    }
+
+    if (fileQueue.length > 1) {
+        // 批量模式不支持对比
+        await processBatchQueue(enabledRules);
+        return;
+    }
+
+    const targetFile = selectedFilePath || (fileQueue.length > 0 ? fileQueue[0].path : null);
+    if (!targetFile) {
+        updateStatus('请先选择要处理的文档', 'warning');
+        return;
+    }
+
+    updateStatus('正在准备对比...', 'processing');
+    showProgressBar();
+    logDev(`开始处理文档(带对比): ${targetFile}`);
+
+    try {
+        // 1. 准备对比：缓存原始文档
+        const prepareResult = await window.electronAPI.prepareDiff(targetFile);
+        if (prepareResult.status !== 'success') {
+            logDev(`准备对比失败: ${prepareResult.message}`);
+        }
+
+        // 2. 处理文档
+        updateStatus('正在处理文档...', 'processing');
+        const result = await window.electronAPI.processDocument(targetFile, enabledRules);
+        logDev(`处理结果: ${JSON.stringify(result)}`);
+
+        // 3. 生成对比
+        updateStatus('正在生成对比...', 'processing');
+        const diffResult = await window.electronAPI.generateDiff(targetFile);
+
+        hideProgressBar();
+
+        if (result.save_success) {
+            updateStatus('处理完成，文件已保存', 'success');
+        } else {
+            updateStatus('处理完成，保存失败', 'error');
+        }
+
+        displayResult(result);
+
+        // 4. 如果对比生成成功，显示对比视图
+        if (diffResult.status === 'success' && diffResult.stats && diffResult.stats.total_changes > 0) {
+            openDiffModal(diffResult);
+        } else {
+            logDev('无变更或对比生成失败，不显示对比视图');
+        }
+
+    } catch (error) {
+        handleProcessError(error);
     }
 }

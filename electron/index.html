@@ -144,6 +144,37 @@
     <!-- 应用主逻辑 -->
     <script src="js/renderer.js"></script>
 
+    <!-- 对比视图模态框 -->
+    <div id="diffModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>修改对比</h2>
+                <div class="diff-stats" id="diffStats">
+                    <span class="stat-add">+<span id="addCount">0</span></span>
+                    <span class="stat-del">-<span id="delCount">0</span></span>
+                </div>
+                <span class="close" onclick="closeDiffModal()">&times;</span>
+            </div>
+            <div class="modal-body diff-body">
+                <div class="diff-container">
+                    <div class="diff-pane">
+                        <div class="diff-pane-header">修改前</div>
+                        <div class="diff-content" id="originalContent"></div>
+                    </div>
+                    <div class="diff-pane">
+                        <div class="diff-pane-header">修改后</div>
+                        <div class="diff-content" id="modifiedContent"></div>
+                    </div>
+                </div>
+                <div class="diff-unified" id="diffUnified" style="display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="toggleDiffView">切换视图</button>
+                <button class="btn btn-primary" onclick="closeDiffModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 预设编辑器模态框 -->
     <div id="presetModal" class="modal">
         <div class="modal-content">
