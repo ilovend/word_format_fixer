@@ -1,8 +1,8 @@
-
 const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const fs = require('fs');
+const { autoUpdater } = require('electron-updater');
 
 // 禁用 GPU 硬件加速，解决部分环境下的 crash 问题
 app.disableHardwareAcceleration();
@@ -320,7 +320,99 @@ app.on('ready', () => {
     // 创建窗口前先隐藏菜单栏
     Menu.setApplicationMenu(null);
     createWindow();
+    
+    // 初始化自动更新（仅在生产环境）
+    if (app.isPackaged) {
+        setupAutoUpdater();
+    }
 });
+
+// ==================== 自动更新 ====================
+
+function setupAutoUpdater() {
+    // 配置日志
+    autoUpdater.logger = console;
+    
+    // 检查更新时发生错误
+    autoUpdater.on('error', (error) => {
+        console.error('AutoUpdater error:', error);
+        if (mainWindow) {
+            mainWindow.webContents.send('update-error', error.message);
+        }
+    });
+    
+    // 检查更新中
+    autoUpdater.on('checking-for-update', () => {
+        console.log('Checking for updates...');
+        if (mainWindow) {
+            mainWindow.webContents.send('update-checking');
+        }
+    });
+    
+    // 有可用更新
+    autoUpdater.on('update-available', (info) => {
+        console.log('Update available:', info.version);
+        if (mainWindow) {
+            mainWindow.webContents.send('update-available', {
+                version: info.version,
+                releaseDate: info.releaseDate,
+                releaseNotes: info.releaseNotes
+            });
+        }
+    });
+    
+    // 没有可用更新
+    autoUpdater.on('update-not-available', (info) => {
+        console.log('No update available, current version is latest');
+        if (mainWindow) {
+            mainWindow.webContents.send('update-not-available');
+        }
+    });
+    
+    // 下载进度
+    autoUpdater.on('download-progress', (progress) => {
+        console.log(`Download progress: ${progress.percent.toFixed(1)}%`);
+        if (mainWindow) {
+            mainWindow.webContents.send('update-download-progress', {
+                percent: progress.percent,
+                bytesPerSecond: progress.bytesPerSecond,
+                transferred: progress.transferred,
+                total: progress.total
+            });
+        }
+    });
+    
+    // 下载完成
+    autoUpdater.on('update-downloaded', (info) => {
+        console.log('Update downloaded:', info.version);
+        if (mainWindow) {
+            mainWindow.webContents.send('update-downloaded', {
+                version: info.version
+            });
+        }
+        
+        // 提示用户安装更新
+        dialog.showMessageBox(mainWindow, {
+            type: 'info',
+            title: '更新已就绪',
+            message: `新版本 ${info.version} 已下载完成，是否立即安装？`,
+            buttons: ['立即安装', '稍后安装'],
+            defaultId: 0,
+            cancelId: 1
+        }).then(({ response }) => {
+            if (response === 0) {
+                autoUpdater.quitAndInstall();
+            }
+        });
+    });
+    
+    // 启动时检查更新（延迟3秒，等待窗口完全加载）
+    setTimeout(() => {
+        autoUpdater.checkForUpdates().catch(err => {
+            console.error('Check for updates failed:', err);
+        });
+    }, 3000);
+}
 
 app.on('window-all-closed', function () {
     // 退出前清理后端进程
@@ -555,4 +647,25 @@ ipcMain.handle('get-preview', async (event, documentPath) => {
         console.error('Error getting preview:', error);
         throw error;
     }
+});
+
+// ==================== 自动更新 IPC ====================
+
+// 手动检查更新
+ipcMain.handle('check-for-updates', async () => {
+    if (!app.isPackaged) {
+        return { success: false, message: '开发环境不支持自动更新' };
+    }
+    try {
+        const result = await autoUpdater.checkForUpdates();
+        return { success: true, updateInfo: result?.updateInfo };
+    } catch (error) {
+        console.error('Check for updates failed:', error);
+        return { success: false, message: error.message };
+    }
+});
+
+// 退出并安装更新
+ipcMain.handle('quit-and-install', async () => {
+    autoUpdater.quitAndInstall();
 });

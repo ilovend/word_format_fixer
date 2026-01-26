@@ -16,5 +16,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // Diff/对比功能
     prepareDiff: (documentPath) => ipcRenderer.invoke('prepare-diff', documentPath),
     generateDiff: (documentPath) => ipcRenderer.invoke('generate-diff', documentPath),
-    getPreview: (documentPath) => ipcRenderer.invoke('get-preview', documentPath)
+    getPreview: (documentPath) => ipcRenderer.invoke('get-preview', documentPath),
+    // 自动更新功能
+    checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+    quitAndInstall: () => ipcRenderer.invoke('quit-and-install'),
+    onUpdateChecking: (callback) => ipcRenderer.on('update-checking', callback),
+    onUpdateAvailable: (callback) => ipcRenderer.on('update-available', (event, info) => callback(info)),
+    onUpdateNotAvailable: (callback) => ipcRenderer.on('update-not-available', callback),
+    onUpdateError: (callback) => ipcRenderer.on('update-error', (event, message) => callback(message)),
+    onUpdateDownloadProgress: (callback) => ipcRenderer.on('update-download-progress', (event, progress) => callback(progress)),
+    onUpdateDownloaded: (callback) => ipcRenderer.on('update-downloaded', (event, info) => callback(info))
 });
